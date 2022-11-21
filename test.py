@@ -5,7 +5,8 @@ from gymnasium.utils.play import play
 
 register(
     id="SwarmEnv",
-    entry_point="swarm_env:SwarmEnv",
+    # entry_point="swarm_env:SwarmEnv",
+    entry_point="swarm.envs.swarm_and_agent:SwarmAndAgentEnv",
 )
 
 env = gym.make("SwarmEnv", render_mode="rgb_array")
