@@ -5,7 +5,7 @@ import gymnasium as gym
 import numpy as np
 import pygame
 
-
+# TODO: Possibly simplify using gymnasium.wrappers.HumanRendering.
 class BaseEnv(gym.Env, abc.ABC):
     """Base class for all our Gymnasium environment that mainly hides repetitive rendering code."""
 
