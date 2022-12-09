@@ -1,9 +1,35 @@
+from dataclasses import dataclass
+
 import numpy as np
 import pygame
 from gymnasium import spaces
+from swarm.agent import Agent, AgentConfig
 
-from swarm.envs.base import BaseEnv
-from swarm.swarm.swarm_2d import Swarm2D
+from swarm.base_env import BaseEnv
+from swarm.swarm import Swarm, SwarmConfig
+
+
+@dataclass
+class SwarmAndAgentEnvConfig:
+    """Configurable parameters for a swarm and egent environment."""
+
+    world_size = np.array([100, 100])
+
+    agent_config = AgentConfig(
+        radius=1,
+        speed=1,
+    )
+
+    swarm_config = SwarmConfig(
+        num_boids=100,
+        boid_radius=1,
+        boid_max_speed=1,
+        boid_max_acceleration=0.1,
+        neighbor_range=10,
+        seperation_range_fraction=0.5,
+        steering_weights=(1, 1, 1),
+        obstacle_margin=3,
+    )
 
 
 class SwarmAndAgentEnv(BaseEnv):
@@ -16,63 +42,35 @@ class SwarmAndAgentEnv(BaseEnv):
 
     def __init__(
         self,
+        config: SwarmAndAgentEnvConfig = SwarmAndAgentEnvConfig(),
         render_mode: str | None = None,
-        world_size: tuple[float, float] = (100, 100),
-        agent_radius: float = 2,
-        agent_speed: float = 1,
         window_scale: float = 10,
     ):
         """Initialize the environment instance.
 
-        State related variables such as the agent's location are defined inside the `reset` method.
-
         Args:
-            swarm: Swarm instance.
+            config: Configuration for environment, agent, and swarm parameters.
             render_mode: Render mode of the environment. Defaults to None.
-            world_size: Size of the simulated environment. The lower left corner is (0,0). Defaults to (100, 100).
-            agent_radius: Radius of the agent in the world. Defaults to 2.
-            agent_speed: Velocity of the agent's actions. Defaults to 1.
             window_scale: Scaling factor for rendering the world. The window and frame size will be `world_size` * `window_scale`. Defaults to 10.
         """
+
         super().__init__(
             render_mode,
-            window_size=(world_size[0] * window_scale, world_size[1] * window_scale),
+            window_size=(
+                config.world_size[0] * window_scale,
+                config.world_size[1] * window_scale,
+            ),
         )
 
-        # World is [0, world_size[0]] x [0, world_size[1]].
-        self.world_size = (
-            (world_size, world_size)
-            if not isinstance(world_size, tuple)
-            else world_size
-        )
-        self.world_size = np.array(self.world_size)
+        self.world_size = config.world_size
 
-        self.agent_radius = agent_radius
-        self.agent_speed = agent_speed
+        self.agent = Agent(config.agent_config, self.world_size, self.np_random)
 
-        # TODO: Make configurable.
-        self.swarm = Swarm2D(
-            num_boids=100,
-            boid_radius=1,
-            boid_max_speed=2,
-            boid_max_acceleration=0.1,
-            neighbor_range=10,
-            seperation_range_fraction=0.5,
-            steering_weights=(3, 2, 2),
-            world_size=self.world_size,
-            obstacle_margin=2,
-            np_random=self.np_random,
-        )
+        self.swarm = Swarm(config.swarm_config, self.world_size, self.np_random)
 
         # Position of the agent is the only observation for now.
         self.observation_space = spaces.Dict(
-            {
-                "agent": spaces.Box(
-                    low=agent_radius,
-                    high=self.world_size - agent_radius,
-                    dtype=np.float,
-                )
-            }
+            {"agent": spaces.Box(low=0, high=self.world_size, dtype=np.float)}
         )
 
         # 5 possible actions (1 nothing + 4 directions).
@@ -111,11 +109,7 @@ class SwarmAndAgentEnv(BaseEnv):
         """
         super().reset(seed=seed)
 
-        # Sample random agent location.
-        self.agent_location = (
-            self.np_random.uniform(low=0.1, high=0.9, size=2) * self.world_size
-        )
-
+        self.agent.reset()
         self.swarm.reset()
 
         # Render to window.
@@ -137,14 +131,7 @@ class SwarmAndAgentEnv(BaseEnv):
             Observation, reward, terminated, truncated, and information after the update step.
         """
 
-        # Update the agent's location based on action but stay inside the world.
-        self.agent_location += self.action_to_direction[action] * self.agent_speed
-        self.agent_location = np.clip(
-            self.agent_location,
-            a_min=self.agent_radius,
-            a_max=self.world_size - self.agent_radius,
-        )
-
+        self.agent.step(self.action_to_direction[action])
         self.swarm.step()
 
         # Render to window.
@@ -161,7 +148,7 @@ class SwarmAndAgentEnv(BaseEnv):
 
     def _get_observation(self) -> ObsType:
         """Translate the current state of the environment into an observation."""
-        return {"agent": self.agent_location}
+        return {"agent": self.agent.location}
 
     def _get_info(self) -> InfoType:
         """Get auxiliary information for the current state of the environment."""
@@ -181,8 +168,8 @@ class SwarmAndAgentEnv(BaseEnv):
         pygame.draw.circle(
             canvas,
             self.colors["agent"],
-            self.agent_location * self.window_scale,
-            self.agent_radius * self.window_scale,
+            self.agent.location * self.window_scale,
+            self.agent.radius * self.window_scale,
         )
 
         # Draw each boid in swarm.

@@ -1,10 +1,26 @@
+from dataclasses import dataclass
+
 import numpy as np
 
 from swarm import utils
 
 
-class Swarm2D:
-    """2D implementation of a swarm of boids.
+@dataclass
+class SwarmConfig:
+    """Configurable parameters for a swarm."""
+
+    num_boids: int
+    boid_radius: int
+    boid_max_speed: int
+    boid_max_acceleration: int
+    neighbor_range: float
+    seperation_range_fraction: float
+    steering_weights: tuple[float, float, float]
+    obstacle_margin: float
+
+
+class Swarm:
+    """Swarm of boids.
 
     The methods perform similar to Gymnasium environments,
     i.e. the `reset` method initializes the boids and the `step` method updates them.
@@ -18,44 +34,31 @@ class Swarm2D:
 
     def __init__(
         self,
-        num_boids: int,
-        boid_radius: float,
-        boid_max_speed: float,
-        boid_max_acceleration: float,
-        neighbor_range: float,
-        seperation_range_fraction: float,
-        steering_weights: tuple[float, float, float],
+        config: SwarmConfig,
         world_size: np.ndarray,
-        obstacle_margin: float,
         np_random: np.random.Generator | None = None,
     ):
-        """Constructor of the `Swarm2D` class.
+        """Initliaze swarm.
+
+        This function should generaly be called from inside an environment.
 
         Args:
-            num_boids: Number of circular boids in the swarm.
-            boid_radius: Radius of each boid in world size.
-            boid_max_speed: Maximum speed of each boid.
-            boid_max_acceleration: Maximum acceleration of each boid.
-            neighbor_range: Maximum distance between boids to be considered neighbors.
-            seperation_range_fraction: Fraction of `neighbor_range`, which separation rule considers.
-            steering_weights: Weights for the three rules.
-            world_size: Width and height of the world. [0, world_size[0]] x [0, world_size[1]]
-            obstacle_margin: Distance to obstacles in which the boids are forced away.
-            np_random: Numpy RNG, preferably from a Gymnaiusm environment. Defaults to None.
+            config: Swarm configuration parameters
+            world_size: World size of the environemnt.
+            np_random: Random number generator, preferably from the Gymanisum environment.
         """
 
-        assert obstacle_margin > boid_radius, "should always hold"
+        self.num_boids = config.num_boids
+        self.boid_radius = config.boid_radius
+        self.boid_max_speed = config.boid_max_speed
+        self.boid_max_acceleration = config.boid_max_acceleration
+        self.neighbor_range = config.neighbor_range
+        self.separation_range_fraction = config.seperation_range_fraction
+        self.steering_weights = config.steering_weights
+        self.obstacle_margin = config.obstacle_margin
 
-        self.num_boids = num_boids
-        self.boid_radius = boid_radius
-        self.boid_max_speed = boid_max_speed
-        self.boid_max_acceleration = boid_max_acceleration
-        self.neighbor_range = neighbor_range
-        self.separation_range_fraction = seperation_range_fraction
-        self.steering_weights = steering_weights
         # World is [0, world_size[0]] x [0, world_size[1]].
         self.world_size = world_size
-        self.obstacle_margin = obstacle_margin
         self.np_random = np.random if np_random is None else np_random
 
     def reset(self):
