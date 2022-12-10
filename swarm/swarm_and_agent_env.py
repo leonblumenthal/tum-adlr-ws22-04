@@ -3,8 +3,8 @@ from dataclasses import dataclass
 import numpy as np
 import pygame
 from gymnasium import spaces
-from swarm.agent import Agent, AgentConfig
 
+from swarm.agent import Agent, AgentConfig
 from swarm.base_env import BaseEnv
 from swarm.swarm import Swarm, SwarmConfig
 
@@ -13,7 +13,11 @@ from swarm.swarm import Swarm, SwarmConfig
 class SwarmAndAgentEnvConfig:
     """Configurable parameters for a swarm and egent environment."""
 
+    # [0, 100] x [0, 100]
     world_size = np.array([100, 100])
+
+    obs_num_sections = 8
+    obs_max_range = 20
 
     agent_config = AgentConfig(
         radius=1,
@@ -27,18 +31,20 @@ class SwarmAndAgentEnvConfig:
         boid_max_acceleration=0.1,
         neighbor_range=10,
         seperation_range_fraction=0.5,
-        steering_weights=(1, 1, 1),
+        steering_weights=(1.1, 1, 1),
         obstacle_margin=3,
     )
 
 
+# TODO: I do not like the mixture between rendering and simulation.
+#       Note, we never use images as observations.
 class SwarmAndAgentEnv(BaseEnv):
     """Environment with a swarm and an agent."""
 
     # Types for items of observation, information, and action spaces.
-    ObsType = dict[str, np.ndarray]
+    ObsType = np.ndarray
     InfoType = dict[str]
-    ActType = int
+    ActType = np.ndarray
 
     def __init__(
         self,
@@ -64,33 +70,29 @@ class SwarmAndAgentEnv(BaseEnv):
 
         self.world_size = config.world_size
 
+        self.obs_num_sections = config.obs_num_sections
+        self.obs_max_range = config.obs_max_range
+
         self.agent = Agent(config.agent_config, self.world_size, self.np_random)
 
         self.swarm = Swarm(config.swarm_config, self.world_size, self.np_random)
 
-        # Position of the agent is the only observation for now.
-        self.observation_space = spaces.Dict(
-            {"agent": spaces.Box(low=0, high=self.world_size, dtype=np.float)}
+        self.observation_space = spaces.Box(
+            low=-1, high=1, shape=(self.obs_num_sections, 2)
         )
 
-        # 5 possible actions (1 nothing + 4 directions).
-        self.action_space = spaces.Discrete(5)
-        # Translation between dsicrete actions and directions in the environment.
-        self.action_to_direction = {
-            0: np.array([0, 0]),  # stay
-            1: np.array([1, 0]),  # right
-            2: np.array([0, 1]),  # top
-            3: np.array([-1, 0]),  # left
-            4: np.array([0, -1]),  # down
-        }
+        self.action_space = spaces.Box(low=-1, high=1, shape=(2,))
 
         # Window size is scaled version of world.
         self.window_scale = window_scale
-        self.colors = {
-            "background": (255, 255, 255),
-            "agent": (0, 0, 255),
-            "boid": (255, 0, 0),
-        }
+        self.colors = dict(
+            background="white",
+            agent="blue",
+            boid="red",
+            boid_direction="black",
+            observation_section="gray",
+            observation="green",
+        )
 
     def reset(
         self, seed: int | None = None, options: dict | None = None
@@ -131,7 +133,7 @@ class SwarmAndAgentEnv(BaseEnv):
             Observation, reward, terminated, truncated, and information after the update step.
         """
 
-        self.agent.step(self.action_to_direction[action])
+        self.agent.step(action)
         self.swarm.step()
 
         # Render to window.
@@ -139,7 +141,9 @@ class SwarmAndAgentEnv(BaseEnv):
             self.render_human()
 
         observation = self._get_observation()
-        reward = 0
+        # TODO: I do not like this cache thing.
+        #       Refer to _get_observation
+        reward = (self._cache["distances"] < self.obs_max_range).sum()
         terminated = False
         truncated = False
         info = self._get_info()
@@ -147,8 +151,42 @@ class SwarmAndAgentEnv(BaseEnv):
         return observation, reward, terminated, truncated, info
 
     def _get_observation(self) -> ObsType:
-        """Translate the current state of the environment into an observation."""
-        return {"agent": self.agent.location}
+        """Return the scaled relative positions of each nearest neighbor per section."""
+
+        differences = self.swarm.boid_positions - self.agent.location
+        distances = np.linalg.norm(differences, axis=1)
+        angles = np.arctan2(differences[:, 1], differences[:, 0]) % (2 * np.pi)
+        sections = np.floor_divide(angles, 2 * np.pi / self.obs_num_sections).astype(
+            int
+        )
+
+        indices = np.arange(len(sections))
+
+        observation = np.zeros((self.obs_num_sections, 2))
+
+        for section in range(self.obs_num_sections):
+            mask = sections == section
+
+            if mask.sum() > 0:
+                i = np.argmin(distances[mask])
+                i = indices[mask][i]
+
+                if distances[i] < self.obs_max_range:
+                    observation[section] = differences[i] / self.obs_max_range
+                    continue
+
+            # Set default observation
+            angle = (section + 0.5) * 2 * np.pi / self.obs_num_sections
+            observation[section] = np.array([np.cos(angle), np.sin(angle)])
+
+        # TODO: I do not like this cache thing.
+        #       However, explictely passing everything is cumbersome.
+        self._cache = dict(
+            observation=observation,
+            distances=distances,
+        )
+
+        return observation
 
     def _get_info(self) -> InfoType:
         """Get auxiliary information for the current state of the environment."""
@@ -184,10 +222,43 @@ class SwarmAndAgentEnv(BaseEnv):
             )
             pygame.draw.line(
                 canvas,
-                "black",
+                self.colors["boid_direction"],
                 position * self.window_scale,
                 (position + velocity) * self.window_scale,
                 2,
+            )
+
+        # TODO: Only render when e.g. "debug" is enabled.
+        for i, pos in enumerate(self._cache["observation"]):
+            # Draw line to observation.
+            pygame.draw.line(
+                canvas,
+                # TODO: colors
+                self.colors["observation"],
+                self.agent.location * self.window_scale,
+                (self.agent.location + pos * self.obs_max_range) * self.window_scale,
+                2,
+            )
+            # Draw observation circles.
+            pygame.draw.circle(
+                canvas,
+                self.colors["observation"],
+                (self.agent.location + pos * self.obs_max_range) * self.window_scale,
+                self.swarm.boid_radius / 2 * self.window_scale,
+            )
+
+            # Draw section lines.
+            angle = i * 2 * np.pi / self.obs_num_sections
+            pygame.draw.line(
+                canvas,
+                self.colors["observation_section"],
+                self.agent.location * self.window_scale,
+                (
+                    self.agent.location
+                    + np.array([np.cos(angle), np.sin(angle)]) * self.obs_max_range
+                )
+                * self.window_scale,
+                1,
             )
 
         # Ensure that lower left corner is (0,0).
