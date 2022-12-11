@@ -25,7 +25,7 @@ def main(rel_env_path: str, env_class_name: str, seed: int = None):
         ),
         seed=seed,
         # Print reward.
-        callback=lambda *x: print(x[3]),
+        callback=lambda *x: print(x[3], x[-1]),
     )
 
 

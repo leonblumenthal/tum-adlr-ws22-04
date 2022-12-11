@@ -78,7 +78,7 @@ class SwarmAndAgentEnv(BaseEnv):
         self.swarm = Swarm(config.swarm_config, self.world_size, self.np_random)
 
         self.observation_space = spaces.Box(
-            low=-1, high=1, shape=(self.obs_num_sections, 2)
+            low=-1, high=1, shape=(self.obs_num_sections, 2), dtype=np.float
         )
 
         self.action_space = spaces.Box(low=-1, high=1, shape=(2,))
@@ -111,15 +111,17 @@ class SwarmAndAgentEnv(BaseEnv):
         """
         super().reset(seed=seed)
 
+        self.step_counter = 0
+
         self.agent.reset()
         self.swarm.reset()
+
+        observation = self._get_observation()
+        info = self._get_info()
 
         # Render to window.
         if self.render_mode == "human":
             self.render_human()
-
-        observation = self._get_observation()
-        info = self._get_info()
 
         return observation, info
 
@@ -132,6 +134,8 @@ class SwarmAndAgentEnv(BaseEnv):
         Returns:
             Observation, reward, terminated, truncated, and information after the update step.
         """
+
+        self.step_counter += 1
 
         self.agent.step(action)
         self.swarm.step()
@@ -190,7 +194,7 @@ class SwarmAndAgentEnv(BaseEnv):
 
     def _get_info(self) -> InfoType:
         """Get auxiliary information for the current state of the environment."""
-        return {}
+        return {"step": self.step_counter}
 
     def render_canvas(self) -> pygame.Surface:
         """Actually render and return the canvas.

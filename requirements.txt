@@ -3,5 +3,7 @@ gymnasium[box2d]
 gymnasium[other]
 black
 plotly
+nbformat
 pandas
 ipykernel
+torch
