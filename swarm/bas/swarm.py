@@ -35,13 +35,15 @@ class Swarm:
         self,
         num_boids: int,
         radius: int,
-        max_velocity: int,
+        max_velocity: int | None,
         max_acceleration: int,
         separation_range: float,
         alignment_range: float,
         cohesion_range: float,
         steering_weights: tuple[float, float, float],
         obstacle_margin: float,
+        reset_positions: np.ndarray | None = None,
+        reset_velocities: np.ndarray | None = None,
     ):
         """Initialize the swarm.
 
@@ -50,11 +52,13 @@ class Swarm:
         Args:
             num_boids: Number of boids.
             radius: Radius of each beach in the world.
-            max_velocity: Maximum velocity for each boid.
+            max_velocity: Maximum velocity for each boid. None for static boids.
             max_acceleration: Maximum acceleration for each boid.
             separation_range, alignment_range, cohesion_range: Range in which boids are considered for the respective rule.
             steering_weights: Weighting between the three rules mentioned above.
             obstacle_margin: Minimum distance at which boids are force awa from obstacles.
+            reset_positions: Specific spawn positions. Defaults to None.
+            reset_velocities: Specific spawn velocities. Defaults to None.
         """
 
         self.num_boids = num_boids
@@ -67,6 +71,11 @@ class Swarm:
         self.steering_weights = steering_weights
         self.obstacle_margin = obstacle_margin
 
+        assert reset_positions is None or reset_positions.shape == (num_boids, 2)
+        self.reset_positions = reset_positions
+        assert reset_velocities is None or reset_velocities.shape == (num_boids, 2)
+        self.reset_velocities = reset_velocities
+
         # Used to set distance to self further than all ranges.
         self._self_distance = max(separation_range, alignment_range, cohesion_range)
 
@@ -77,16 +86,22 @@ class Swarm:
         self.world_size = world_size
         self.np_random = np_random
 
-        # Sample boid posisition randomly in world size.
-        self.positions = self.np_random.uniform(
-            low=self.radius,
-            high=self.world_size - self.obstacle_margin,
-            size=(self.num_boids, 2),
-        )
+        if self.reset_positions is None:
+            # Sample boid posisition randomly in world size.
+            self.positions = self.np_random.uniform(
+                low=self.radius,
+                high=self.world_size - self.obstacle_margin,
+                size=(self.num_boids, 2),
+            )
+        else:
+            # .copy() is important because self.positions is modified in-place in self.step().
+            self.positions = self.reset_positions.copy()
+        
         # Velocities from last step are needed for computation.
         self.velocities = np.zeros_like(self.positions)
+        if self.reset_velocities is not None and self.max_velocity is not None:
+            self.velocities += self.reset_velocities
 
-    # TODO: Something does not work as intended. Boids move too slow
     def step(self):
         """Update the position and velocity for each boid.
 
@@ -99,6 +114,10 @@ class Swarm:
 
         The position is updated using the Euler method, i.e. v = v + a -> p = p + v.
         """
+
+        # Boids are static.
+        if self.max_velocity is None:
+            return
 
         # Compute desired velocities and resulting accelerations.
         desired_velocities = self._compute_desired_velocities() * self.max_velocity
