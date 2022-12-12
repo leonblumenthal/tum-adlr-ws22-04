@@ -107,7 +107,7 @@ class Swarm:
 
         # Update velocities.
         self.velocities += accelerations
-        self.velocities = limit(self.velocities, self.max_acceleration)
+        self.velocities = limit(self.velocities, self.max_velocity)
 
         # Add velocities to avoid obstacles.
         self.velocities += self._compute_obstacle_bounce() * self.max_velocity
