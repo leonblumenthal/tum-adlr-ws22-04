@@ -1,40 +1,44 @@
-"""Script for playing an environment with direction vectors as actions."""
+"""Play the BAS environment with some wrappers, especially rendering."""
 
-import argparse
-
-import gymnasium as gym
-from gymnasium.envs.registration import register
 from gymnasium.utils.play import play
 import numpy as np
 
-
-def main(rel_env_path: str, env_class_name: str, seed: int = None):
-    entry_point = f"{rel_env_path[:-3].replace('/', '.')}:{env_class_name}"
-
-    register(env_class_name, entry_point)
-    env = gym.make(env_class_name, render_mode="rgb_array")
-
-    play(
-        env,
-        keys_to_action=dict(
-            z=np.array([0, 0]),  # no movement
-            d=np.array([1, 0]),  # right
-            w=np.array([0, 1]),  # up
-            a=np.array([-1, 0]),  # left
-            s=np.array([0, -1]),  # down
-        ),
-        seed=seed,
-        # Print reward.
-        callback=lambda *x: print(x[3], x[-1]),
-    )
+from swarm.bas import Agent, BASEnv, Blueprint, Swarm, wrappers, RenderWrapper
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("rel_env_path", help="Relative path of the environment")
-    parser.add_argument("env_class_name", help="Class name of the environment")
-    parser.add_argument("--seed")
+# Create an example environment with some wrappers.
+env = BASEnv(
+    blueprint=Blueprint(
+        world_size=np.array([100, 100]),
+    ),
+    agent=Agent(radius=1, max_velocity=1, reset_position=np.array([50, 50])),
+    swarm=Swarm(
+        num_boids=100,
+        radius=1,
+        max_velocity=1,
+        max_acceleration=0.1,
+        separation_range=5,
+        cohesion_range=10,
+        alignment_range=10,
+        steering_weights=(1.1, 1, 1),
+        obstacle_margin=3,
+    ),
+)
 
-    args = parser.parse_args()
+env = wrappers.NumNeighborsRewardWrapper(env, max_range=30)
+env = wrappers.DiscreteActionWrapper(env, num_actions=5)
+env = wrappers.SectionObservationWrapper(env, num_sections=8, max_range=20)
+env = wrappers.FlattenObservationWrapper(env)
+env = RenderWrapper(env)
 
-    main(args.rel_env_path, args.env_class_name, args.seed)
+play(
+    env,
+    keys_to_action=dict(
+        z=0,  # no movement
+        d=1,  # right
+        w=2,  # up
+        a=3,  # left
+        s=4,  # down
+    ),
+    callback=print
+)
