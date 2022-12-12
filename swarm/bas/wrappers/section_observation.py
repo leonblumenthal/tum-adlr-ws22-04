@@ -28,7 +28,7 @@ class SectionObservationWrapper(gym.ObservationWrapper):
         self.max_range = max_range
 
         self._observation_space = spaces.Box(
-            low=-1, high=1, shape=(env.swarm.num_boids, 2)
+            low=-1, high=1, shape=(num_sections, 2)
         )
 
     def observation(self, _) -> np.ndarray:
