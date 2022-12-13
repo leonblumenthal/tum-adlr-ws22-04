@@ -63,7 +63,7 @@ class Agent:
             self.position = self.reset_position.astype(float).copy()
 
         # agents directional velocity
-        self.velocity = np.array([0.0, 0.0])
+        self.velocity = np.zeros_like(self.position)
 
     def step(self, desired_velocity: ActionType):
         """Update the position with the next velocity based desired velocity"""
