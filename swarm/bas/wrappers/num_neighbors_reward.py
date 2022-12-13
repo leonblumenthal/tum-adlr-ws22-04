@@ -22,6 +22,6 @@ class NumNeighborsRewardWrapper(gym.RewardWrapper):
         """Compute reward as number of boids within a specified range around the agent."""
         # TODO: Add fundamental compuatations cache in env.
         distances = np.linalg.norm(
-            self.env.swarm.positions - self.env.agent.position, axis=1
+            self.swarm.positions - self.agent.position, axis=1
         )
         return (distances <= self._max_range).sum()

@@ -38,13 +38,11 @@ class SectionObservationWrapper(gym.ObservationWrapper):
         If a section is empty or the nearest boid is further away than the max range,
         the default observation is centered on the max range border of the section
         """
-        swarm = self.env.swarm
-        agent = self.env.agent
 
         # TODO: Add functionality to compute these fundamental values in the base Env.
         #       Multiple wrappers can use the values then without re-computing.
         # Compute differences and distances to all boids.
-        differences = swarm.positions - agent.position
+        differences = self.swarm.positions - self.agent.position
         distances = np.linalg.norm(differences, axis=1)
         # Assign (indices of) boids into their respective radial sections.
         angles = np.arctan2(differences[:, 1], differences[:, 0]) % (2 * np.pi)

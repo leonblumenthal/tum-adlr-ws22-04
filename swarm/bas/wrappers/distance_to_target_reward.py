@@ -17,9 +17,9 @@ class DistanceToTargetRewardWrapper(gym.RewardWrapper):
         self._position = position
 
         # TODO: Compute actual max distance possible.
-        self._reward_range = (-np.linalg.norm(self.env.blueprint.world_size), 0)
+        self._reward_range = (-np.linalg.norm(self.blueprint.world_size), 0)
 
     def reward(self, _):
         """Compute reward as negative distance between agent and target position."""
 
-        return -np.linalg.norm(self.env.agent.position - self._position)
+        return -np.linalg.norm(self.agent.position - self._position)
