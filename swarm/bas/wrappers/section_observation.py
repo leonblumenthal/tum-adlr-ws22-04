@@ -22,10 +22,8 @@ class SectionObservationWrapper(gym.ObservationWrapper):
         """
         super().__init__(env)
 
-        self.num_sections = num_sections
-        # TODO: This might be problematic because another wrapper also defines this attribute.
-        #       Private attributes are the solution but they can not be accessed by the renderers without modififaction.
-        self.max_range = max_range
+        self._num_sections = num_sections
+        self._max_range = max_range
 
         self._observation_space = spaces.Box(
             low=-1, high=1, shape=(num_sections, 2)
@@ -50,13 +48,13 @@ class SectionObservationWrapper(gym.ObservationWrapper):
         distances = np.linalg.norm(differences, axis=1)
         # Assign (indices of) boids into their respective radial sections.
         angles = np.arctan2(differences[:, 1], differences[:, 0]) % (2 * np.pi)
-        sections = np.floor_divide(angles, 2 * np.pi / self.num_sections).astype(int)
+        sections = np.floor_divide(angles, 2 * np.pi / self._num_sections).astype(int)
 
         indices = np.arange(len(differences))
 
         # Create observation for each section individually.
-        observation = np.zeros((self.num_sections, 2))
-        for section in range(self.num_sections):
+        observation = np.zeros((self._num_sections, 2))
+        for section in range(self._num_sections):
             section_boid_mask = sections == section
 
             # Try to find nearest boid in section.
@@ -65,12 +63,12 @@ class SectionObservationWrapper(gym.ObservationWrapper):
                 boid_index = indices[section_boid_mask][boid_index]
 
                 # Create observation if boid is within max range.
-                if distances[boid_index] < self.max_range:
-                    observation[section] = differences[boid_index] / self.max_range
+                if distances[boid_index] < self._max_range:
+                    observation[section] = differences[boid_index] / self._max_range
                     continue
 
             # Set default observation (centered on the max range border of the section).
-            angle = 2 * np.pi * (section + 0.5) / self.num_sections
+            angle = 2 * np.pi * (section + 0.5) / self._num_sections
             observation[section] = np.array([np.cos(angle), np.sin(angle)])
 
         return observation

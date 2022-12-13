@@ -5,7 +5,7 @@ import gymnasium as gym
 import numpy as np
 import pygame
 
-from swarm.bas import Agent, Swarm
+from swarm.bas import Agent, BASEnv, Swarm, wrappers
 from swarm.bas.render.constants import Colors
 
 # TODO: Split into multiple files.
@@ -14,12 +14,33 @@ from swarm.bas.render.constants import Colors
 class Renderer(abc.ABC):
     """Abstact base class for renderers that render BAS wrappers.
 
+    `self.` should be used. to access public attributes of the render wrapper
+    and private attributes of the corresponding `WRAPPER` instance.
+
     This class also contains bindings for pygame draw functions
     that automatically convert from world size to window size.
     """
 
-    def __init__(self, wrapper: "RenderWrapper"):
-        self.wrapper = wrapper
+    WRAPPER = None
+
+    def __init__(self, render_wrapper: "RenderWrapper", instance: gym.Wrapper):
+        """Initalize renderer and store wrappers.
+
+        Args:
+            render_wrapper: Render wrapper needed for window scale.
+            instance: Actual `WRAPPER` instance corresponding to this renderer with private attributes.
+        """
+        self._render_wrapper = render_wrapper
+        self._instance = instance
+
+    def __getattr__(self, name: str) -> Any:
+        """Provide access to public attributes of the render_wrapper
+        and private attributes of the corresponding `WRAPPER` instance.
+        """
+        if name.startswith("_"):
+            return getattr(self._instance, name)
+
+        return getattr(self._render_wrapper, name)
 
     @abc.abstractmethod
     def render(self, canvas: pygame.Surface):
@@ -34,7 +55,7 @@ class Renderer(abc.ABC):
         width: float,
     ):
         """Draw a line on the canvas in window size from geometric arguments in world size."""
-        scale = self.wrapper.window_scale
+        scale = self.window_scale
         pygame.draw.line(
             canvas, color, scale * start_position, scale * end_position, width
         )
@@ -47,30 +68,37 @@ class Renderer(abc.ABC):
         radius: float,
     ):
         """Draw a circle on the canvas in window size from geometric arguments in world size."""
-        scale = self.wrapper.window_scale
+        scale = self.window_scale
         pygame.draw.circle(canvas, color, scale * center, scale * radius)
 
 
 class BASEnvRenderer(Renderer):
     """Renderer for the raw BAS environment drawing the agent and the boids."""
 
+    WRAPPER = BASEnv
+
     def render(self, canvas: pygame.Surface):
         """Draw the agent position and position and velocity of the boids."""
-        agent: Agent = self.wrapper.agent
+        agent: Agent = self.agent
         self.circle(canvas, Colors.AGENT, agent.position, agent.radius)
 
-        swarm: Swarm = self.wrapper.swarm
+        swarm: Swarm = self.swarm
         for position, velocity in zip(swarm.positions, swarm.velocities):
             self.circle(canvas, Colors.BOID, position, swarm.radius)
-            self.line(canvas, Colors.BOID_DIRECTION, position, position + velocity, 2)
+            if swarm.max_velocity is not None:
+                self.line(
+                    canvas, Colors.BOID_DIRECTION, position, position + velocity, 2
+                )
 
 
 class DistanceToTargetRewardWrapperRenderer(Renderer):
     """Renderer for the DistanceToTargetRewardWrapper drawing the target."""
 
+    WRAPPER = wrappers.DistanceToTargetRewardWrapper
+
     def render(self, canvas: pygame.Surface):
         """Draw the target position."""
-        target_position = self.wrapper.target_position
+        target_position = self._position
 
         self.circle(canvas, Colors.REWARD, target_position, 1)
 
@@ -78,17 +106,18 @@ class DistanceToTargetRewardWrapperRenderer(Renderer):
 class SectionObservationWrapperRenderer(Renderer):
     """Renderer for the SectionObservationWrapper drawing observations and sections."""
 
+    WRAPPER = wrappers.SectionObservationWrapper
+
     def render(self, canvas: pygame.Surface):
         """Draw observations small circles and lines to the agent.
         Also draw sections with static lines from the agent to the max range.
         """
-        agent = self.wrapper.agent
-        swarm = self.wrapper.swarm
-        num_sections = self.wrapper.num_sections
-        # TODO: This might be the max_range of another wrapper.
-        max_range = self.wrapper.max_range
+        agent = self.agent
+        swarm = self.swarm
+        num_sections = self._num_sections
+        max_range = self._max_range
 
-        for i, pos in enumerate(self.wrapper.cached_observation):
+        for i, pos in enumerate(self.cached_observation):
             # Draw line to observation.
             self.line(
                 canvas,
@@ -121,20 +150,26 @@ class RenderWrapper(gym.Wrapper):
 
     Without this, the a BAS environment does not support rendering.
 
+    For all nested envs/wrappers execute all applicable renderers in `enabled_renderers`.
+
     This wrapper should be above other custom BAS-related wrappers.
     """
 
     def __init__(
         self,
         env: gym.Env,
-        # TODO: Use env chain.
-        renderers: list[type[Renderer]] = [BASEnvRenderer],
+        enabled_renderers: list[type[Renderer]] = [
+            BASEnvRenderer,
+            SectionObservationWrapperRenderer,
+            DistanceToTargetRewardWrapperRenderer,
+        ],
         window_scale: float = 10,
     ):
-        """Initialize the wrapper.
+        """Initialize the wrapper and setup all enabled and applicable renderers.
 
         Args:
             env: (Wrapped) BAS environment to render.
+            enabled_renderer: Enabled renderers that are used if applicable.
             window_scale: Ratio between window size and world size. Defaults to 10.
         """
         super().__init__(env)
@@ -143,8 +178,27 @@ class RenderWrapper(gym.Wrapper):
         self.window_scale = window_scale
         self.window_size = self.env.blueprint.world_size * window_scale
 
-        # TODO: Use env chain.
-        self.renderers: list[Renderer] = [R(self) for R in renderers]
+        self._renderers = self._get_applicable_renderers(enabled_renderers)
+
+    def _get_applicable_renderers(
+        self, enabled_renderers: list[Renderer]
+    ) -> list[Renderer]:
+        """Find and create all applicable renderers based on all nested wrappers/envs."""
+        wrapper_to_renderer = {
+            renderer.WRAPPER: renderer for renderer in enabled_renderers
+        }
+
+        renderers = []
+        instance = self.env
+        while instance is not None:
+            Renderer = wrapper_to_renderer.get(type(instance))
+            if Renderer is not None:
+                renderers.append(Renderer(self, instance))
+
+            instance = getattr(instance, "env", None)
+
+        # Reversed because root env should be drawn first.
+        return renderers[::-1]
 
     @property
     def render_mode(self) -> str:
@@ -155,7 +209,7 @@ class RenderWrapper(gym.Wrapper):
         ret = super().step(action)
 
         # Cache observation and reward, for additional rendering.
-        if self.renderers:
+        if self._renderers:
             self.cached_observation = ret[0]
             self.cached_reward = ret[1]
 
@@ -166,7 +220,7 @@ class RenderWrapper(gym.Wrapper):
         ret = super().reset(**kwargs)
 
         # Cache observation and reward for additional rendering.
-        if self.renderers:
+        if self._renderers:
             self.cached_observation = ret[0]
             self.cached_reward = 0
 
@@ -180,7 +234,7 @@ class RenderWrapper(gym.Wrapper):
         canvas.fill(Colors.BACKGROUND)
 
         # Let all renderes draw on the canvas.
-        for renderer in self.renderers:
+        for renderer in self._renderers:
             renderer.render(canvas)
 
         # Ensure that lower left corner is (0,0).
