@@ -273,7 +273,7 @@ if __name__ == "__main__":
             lastgaelam = 0
             for t in reversed(range(args.num_steps)):
                 if t == args.num_steps - 1:
-                    nextnonterminal = 1.0 - next_done
+                    nextnonterminal = 1.0 - next_done.int()
                     nextvalues = next_value
                 else:
                     nextnonterminal = 1.0 - dones[t + 1]
