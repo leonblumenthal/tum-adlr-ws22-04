@@ -25,7 +25,7 @@ env = BASEnv(
     ),
 )
 
-env = wrappers.NumNeighborsRewardWrapper(env, max_range=30)
+env = wrappers.NumNeighborsRewardWrapper(env, max_range=20)
 env = wrappers.DiscreteActionWrapper(env, num_actions=5)
 env = wrappers.SectionObservationWrapper(env, num_sections=8, max_range=20)
 env = wrappers.FlattenObservationWrapper(env)
@@ -40,5 +40,4 @@ play(
         a=3,  # left
         s=4,  # down
     ),
-    callback=print
 )

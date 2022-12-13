@@ -29,19 +29,17 @@ def parse_args():
         help="seed of the experiment")
     parser.add_argument("--torch-deterministic", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
         help="if toggled, `torch.backends.cudnn.deterministic=False`")
-    parser.add_argument("--cuda", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
-        help="if toggled, cuda will be enabled by default")
     parser.add_argument("--capture-video", type=lambda x: bool(strtobool(x)), default=False, nargs="?", const=True,
         help="whether to capture videos of the agent performances (check out `videos` folder)")
 
     # Algorithm specific arguments
-    parser.add_argument("--total-timesteps", type=int, default=10000,
+    parser.add_argument("--total-timesteps", type=int, default=50000,
         help="total timesteps of the experiments")
     parser.add_argument("--learning-rate", type=float, default=3e-4,
         help="the learning rate of the optimizer")
     parser.add_argument("--num-envs", type=int, default=1,
         help="the number of parallel game environments")
-    parser.add_argument("--num-steps", type=int, default=128,
+    parser.add_argument("--num-steps", type=int, default=1024,
         help="the number of steps to run in each environment per policy rollout")
     parser.add_argument("--anneal-lr", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
         help="Toggle learning rate annealing for policy and value networks")
@@ -66,7 +64,7 @@ def parse_args():
     parser.add_argument("--max-grad-norm", type=float, default=0.5,
         help="the maximum norm for the gradient clipping")
     parser.add_argument("--target-kl", type=float, default=None,
-        help="the target KL divergence threshold")
+        help="the target KL divergence threshold for early stopping")
     args = parser.parse_args()
     args.batch_size = int(args.num_envs * args.num_steps)
     args.minibatch_size = int(args.batch_size // args.num_minibatches)
@@ -94,7 +92,7 @@ def make_env(idx, capture_video, run_name, gamma):
             ),
         )
 
-        env = wrappers.NumNeighborsRewardWrapper(env, max_range=30)
+        env = wrappers.NumNeighborsRewardWrapper(env, max_range=20)
         env = wrappers.SectionObservationWrapper(env, num_sections=8, max_range=20)
         env = wrappers.FlattenObservationWrapper(env)
         env = gym.wrappers.RecordEpisodeStatistics(env)
@@ -117,7 +115,7 @@ def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
     return layer
 
 
-class ActorCriticAgent(nn.Module):
+class ActorCriticNetwork(nn.Module):
     def __init__(self, envs):
         super().__init__()
         self.critic = nn.Sequential(
@@ -181,7 +179,7 @@ if __name__ == "__main__":
     torch.manual_seed(args.seed)
     torch.backends.cudnn.deterministic = args.torch_deterministic
 
-    device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # env setup
     envs = gym.vector.SyncVectorEnv(
@@ -196,8 +194,8 @@ if __name__ == "__main__":
         envs.single_action_space, gym.spaces.Box
     ), "only continuous action space is supported"
 
-    agent = ActorCriticAgent(envs).to(device)
-    optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
+    actor_critic = ActorCriticNetwork(envs).to(device)
+    optimizer = optim.Adam(actor_critic.parameters(), lr=args.learning_rate, eps=1e-5)
 
     # ALGO Logic: Storage setup
     obs = torch.zeros(
@@ -233,7 +231,7 @@ if __name__ == "__main__":
 
             # ALGO LOGIC: action logic
             with torch.no_grad():
-                action, logprob, _, value = agent.get_action_and_value(next_obs)
+                action, logprob, _, value = actor_critic.get_action_and_value(next_obs)
                 values[step] = value.flatten()
             actions[step] = action
             logprobs[step] = logprob
@@ -244,7 +242,7 @@ if __name__ == "__main__":
             )
             rewards[step] = torch.tensor(reward).to(device).view(-1)
             next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor(
-                terminated or truncated
+                [term or trun for term, trun in zip(terminated,truncated)]
             ).to(device)
 
             for item in info:
@@ -260,9 +258,13 @@ if __name__ == "__main__":
                     )
                     break
 
+
+            #print(type(reward), reward.shape, reward)
+            # writer.add_scalar("charts/reward", reward, global_step)
+
         # bootstrap value if not done
         with torch.no_grad():
-            next_value = agent.get_value(next_obs).reshape(1, -1)
+            next_value = actor_critic.get_value(next_obs).reshape(1, -1)
             advantages = torch.zeros_like(rewards).to(device)
             lastgaelam = 0
             for t in reversed(range(args.num_steps)):
@@ -290,14 +292,14 @@ if __name__ == "__main__":
 
         # Optimizing the policy and value network
         b_inds = np.arange(args.batch_size)
-        clipfracs = []
+        clipfracs = [] # store number of clippings applied (for debugging)
         for epoch in range(args.update_epochs):
             np.random.shuffle(b_inds)
             for start in range(0, args.batch_size, args.minibatch_size):
                 end = start + args.minibatch_size
                 mb_inds = b_inds[start:end]
 
-                _, newlogprob, entropy, newvalue = agent.get_action_and_value(
+                _, newlogprob, entropy, newvalue = actor_critic.get_action_and_value(
                     b_obs[mb_inds], b_actions[mb_inds]
                 )
                 logratio = newlogprob - b_logprobs[mb_inds]
@@ -305,8 +307,8 @@ if __name__ == "__main__":
 
                 with torch.no_grad():
                     # calculate approx_kl http://joschu.net/blog/kl-approx.html
-                    old_approx_kl = (-logratio).mean()
-                    approx_kl = ((ratio - 1) - logratio).mean()
+                    old_approx_kl = (-logratio).mean() # to see how aggressive update is (for debugging)
+                    approx_kl = ((ratio - 1) - logratio).mean() # (for debugging)
                     clipfracs += [
                         ((ratio - 1.0).abs() > args.clip_coef).float().mean().item()
                     ]
@@ -344,10 +346,10 @@ if __name__ == "__main__":
 
                 optimizer.zero_grad()
                 loss.backward()
-                nn.utils.clip_grad_norm_(agent.parameters(), args.max_grad_norm)
+                nn.utils.clip_grad_norm_(actor_critic.parameters(), args.max_grad_norm)
                 optimizer.step()
 
-            if args.target_kl is not None:
+            if args.target_kl is not None: #early stopping at batch level
                 if approx_kl > args.target_kl:
                     break
 
@@ -373,3 +375,5 @@ if __name__ == "__main__":
 
     envs.close()
     writer.close()
+    
+    torch.save(actor_critic,"actor_critic")
