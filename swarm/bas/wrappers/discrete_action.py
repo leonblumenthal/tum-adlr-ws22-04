@@ -26,16 +26,16 @@ class DiscreteActionWrapper(gym.ActionWrapper):
         super().__init__(env)
 
         if zero_action:
-            self.action_to_direction = [np.zeros(2)]
+            self._action_to_direction = [np.zeros(2)]
             num_actions -= 1
 
         angles = np.arange(num_actions) / num_actions * 2 * np.pi + angle_offset
-        self.action_to_direction += [
+        self._action_to_direction += [
             np.array([np.cos(angle), np.sin(angle)]) for angle in angles
         ]
 
-        self._action_space = spaces.Discrete(len(self.action_to_direction))
+        self._action_space = spaces.Discrete(len(self._action_to_direction))
 
     def action(self, action: ActionType) -> np.ndarray:
         """Map discrete action to direction vector."""
-        return self.action_to_direction[action]
+        return self._action_to_direction[action]

@@ -14,9 +14,7 @@ class NumNeighborsRewardWrapper(gym.RewardWrapper):
         """
         super().__init__(env)
 
-        # TODO: This might be problematic because another wrapper also defines this attribute.
-        #       Private attributes are the solution but they can not be accessed by the renderers without modififaction.
-        self.max_range = max_range
+        self._max_range = max_range
 
         self._reward_range = (0, env.swarm.num_boids)
 
@@ -24,6 +22,6 @@ class NumNeighborsRewardWrapper(gym.RewardWrapper):
         """Compute reward as number of boids within a specified range around the agent."""
         # TODO: Add fundamental compuatations cache in env.
         distances = np.linalg.norm(
-            self.env.swarm.positions - self.env.agent.position, axis=1
+            self.swarm.positions - self.agent.position, axis=1
         )
-        return (distances <= self.max_range).sum()
+        return (distances <= self._max_range).sum()
