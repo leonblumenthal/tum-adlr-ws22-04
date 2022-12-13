@@ -1,9 +1,11 @@
 """Play the BAS environment with some wrappers, especially rendering."""
 
-from gymnasium.utils.play import play
+import gymnasium as gym
 import numpy as np
+import torch
 
 from swarm.bas import Agent, BASEnv, Blueprint, Swarm, wrappers, RenderWrapper
+from ppo_continuous import ActorCriticNetwork
 
 
 # Create an example environment with some wrappers.
@@ -26,18 +28,25 @@ env = BASEnv(
 )
 
 env = wrappers.NumNeighborsRewardWrapper(env, max_range=20)
-env = wrappers.DiscreteActionWrapper(env, num_actions=5)
 env = wrappers.SectionObservationWrapper(env, num_sections=8, max_range=20)
-env = wrappers.FlattenObservationWrapper(env)
 env = RenderWrapper(env)
+env = wrappers.FlattenObservationWrapper(env)
+env = gym.wrappers.HumanRendering(env)
 
-play(
-    env,
-    keys_to_action=dict(
-        z=0,  # no movement
-        d=1,  # right
-        w=2,  # up
-        a=3,  # left
-        s=4,  # down
-    ),
-)
+observation, info = env.reset(seed=42)
+
+actor_critic: ActorCriticNetwork = torch.load("actor_critic")
+actor_critic.to("cpu")
+
+for _ in range(10000):
+    observation = torch.Tensor(observation).unsqueeze(0)
+    action, _, _, _ = actor_critic.get_action_and_value(observation)
+
+    observation, reward, terminated, truncated, info = env.step(
+        action[0].numpy()
+    )
+
+    if terminated or truncated:
+        observation, info = env.reset()
+
+env.close()

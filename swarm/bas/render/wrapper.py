@@ -177,8 +177,9 @@ class RenderWrapper(gym.Wrapper):
         # Attributes access is passed thorugh the "chain" of envs.
         self.window_scale = window_scale
         self.window_size = self.env.blueprint.world_size * window_scale
-
         self._renderers = self._get_applicable_renderers(enabled_renderers)
+        self._metadata=env.metadata
+        self._metadata['render_fps']=30
 
     def _get_applicable_renderers(
         self, enabled_renderers: list[Renderer]
@@ -199,6 +200,7 @@ class RenderWrapper(gym.Wrapper):
 
         # Reversed because root env should be drawn first.
         return renderers[::-1]
+
 
     @property
     def render_mode(self) -> str:
