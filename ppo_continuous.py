@@ -35,17 +35,13 @@ def parse_args():
         help="whether to capture videos of the agent performances (check out `videos` folder)")
 
     # Algorithm specific arguments
-    parser.add_argument("--env-id", type=str, default="SwarmAndAgentEnv",
-        help="the id of the environment")
-    parser.add_argument("--entry-point", type=str, default="swarm.swarm_and_agent_env:SwarmAndAgentEnv",
-        help="the entry point of the environment")
-    parser.add_argument("--total-timesteps", type=int, default=1000000,
+    parser.add_argument("--total-timesteps", type=int, default=10000,
         help="total timesteps of the experiments")
     parser.add_argument("--learning-rate", type=float, default=3e-4,
         help="the learning rate of the optimizer")
     parser.add_argument("--num-envs", type=int, default=1,
         help="the number of parallel game environments")
-    parser.add_argument("--num-steps", type=int, default=2048,
+    parser.add_argument("--num-steps", type=int, default=128,
         help="the number of steps to run in each environment per policy rollout")
     parser.add_argument("--anneal-lr", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True,
         help="Toggle learning rate annealing for policy and value networks")
@@ -170,7 +166,7 @@ class ActorCriticAgent(nn.Module):
 if __name__ == "__main__":
 
     args = parse_args()
-    run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
+    run_name = f"{args.exp_name}__{args.seed}__{int(time.time())}"
 
     writer = SummaryWriter(f"runs/{run_name}")
     writer.add_text(
@@ -199,9 +195,6 @@ if __name__ == "__main__":
     assert isinstance(
         envs.single_action_space, gym.spaces.Box
     ), "only continuous action space is supported"
-
-    print("action space", envs.single_action_space.shape)
-    print("observation space", envs.single_observation_space.shape)
 
     agent = ActorCriticAgent(envs).to(device)
     optimizer = optim.Adam(agent.parameters(), lr=args.learning_rate, eps=1e-5)
