@@ -11,7 +11,6 @@ class SectionAndVelocityObservationWrapper(SectionObservationWrapper):
     relative position to the nearest boid respectively.
     """
 
-    ObservationType = np.ndarray
 
     def __init__(self, env: gym.Env, num_sections: int, max_range: float):
         """Initalize the wrapper and set the observation space.
