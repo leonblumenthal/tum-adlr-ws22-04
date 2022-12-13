@@ -33,7 +33,7 @@ def parse_args():
         help="whether to capture videos of the agent performances (check out `videos` folder)")
 
     # Algorithm specific arguments
-    parser.add_argument("--total-timesteps", type=int, default=50000,
+    parser.add_argument("--total-timesteps", type=int, default=200000,
         help="total timesteps of the experiments")
     parser.add_argument("--learning-rate", type=float, default=3e-4,
         help="the learning rate of the optimizer")
@@ -78,7 +78,7 @@ def make_env(idx, capture_video, run_name, gamma):
             blueprint=Blueprint(
                 world_size=np.array([100, 100]),
             ),
-            agent=Agent(radius=1, max_velocity=1, reset_position=np.array([50, 50])),
+            agent=Agent(radius=1, max_velocity=1.2,max_acceleration=0.1, reset_position=np.array([50, 50])),
             swarm=Swarm(
                 num_boids=100,
                 radius=1,
@@ -93,7 +93,7 @@ def make_env(idx, capture_video, run_name, gamma):
         )
 
         env = wrappers.NumNeighborsRewardWrapper(env, max_range=20)
-        env = wrappers.SectionObservationWrapper(env, num_sections=8, max_range=20)
+        env = wrappers.SectionAndVelocityObservationWrapper(env, num_sections=8, max_range=20)
         env = wrappers.FlattenObservationWrapper(env)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         if capture_video:
