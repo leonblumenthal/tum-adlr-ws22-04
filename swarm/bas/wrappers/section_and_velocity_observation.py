@@ -31,5 +31,5 @@ class SectionAndVelocityObservationWrapper(SectionObservationWrapper):
         """Create the section observation + velocity observation."""
 
         section_observation: np.ndarray = super().observation(obs)
-        velocity_observation: np.ndarray = self.agent.velocity
+        velocity_observation: np.ndarray = self.agent.velocity/self.agent.max_velocity
         return np.concatenate([section_observation, [velocity_observation]])

@@ -7,7 +7,7 @@ class SectionObservationWrapper(gym.ObservationWrapper):
     """BAS wrapper to create section observation.
 
     For each radial section/quadrant, compute the normalized
-    relative position to the nearest boid respectiely.
+    relative position to the nearest boid respectively.
     """
 
     ObservationType = np.ndarray
@@ -25,9 +25,15 @@ class SectionObservationWrapper(gym.ObservationWrapper):
         self._num_sections = num_sections
         self._max_range = max_range
 
-        self._observation_space = spaces.Box(
-            low=-1, high=1, shape=(num_sections, 2)
-        )
+        if env.observation_space is None:
+            self._observation_space = spaces.Box(
+                low=-1, high=1, shape=(num_sections, 2)
+            )
+        else:
+            self._observation_space = spaces.Box(
+                low=-1, high=1, shape=(num_sections, 2)
+            )
+
 
     def observation(self, _) -> np.ndarray:
         """Create the section observation.

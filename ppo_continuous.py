@@ -78,7 +78,12 @@ def make_env(idx, capture_video, run_name, gamma):
             blueprint=Blueprint(
                 world_size=np.array([100, 100]),
             ),
-            agent=Agent(radius=1, max_velocity=1.2,max_acceleration=0.1, reset_position=np.array([50, 50])),
+            agent=Agent(
+                radius=1,
+                max_velocity=1.2,
+                max_acceleration=0.1,
+                reset_position=np.array([50, 50]),
+            ),
             swarm=Swarm(
                 num_boids=100,
                 radius=1,
@@ -93,7 +98,9 @@ def make_env(idx, capture_video, run_name, gamma):
         )
 
         env = wrappers.NumNeighborsRewardWrapper(env, max_range=20)
-        env = wrappers.SectionAndVelocityObservationWrapper(env, num_sections=8, max_range=20)
+        env = wrappers.SectionAndVelocityObservationWrapper(
+            env, num_sections=8, max_range=20
+        )
         env = wrappers.FlattenObservationWrapper(env)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         if capture_video:
@@ -184,9 +191,7 @@ if __name__ == "__main__":
     # env setup
     envs = gym.vector.SyncVectorEnv(
         [
-            make_env(
-                i, args.capture_video, run_name, args.gamma
-            )
+            make_env(i, args.capture_video, run_name, args.gamma)
             for i in range(args.num_envs)
         ]
     )
@@ -242,7 +247,7 @@ if __name__ == "__main__":
             )
             rewards[step] = torch.tensor(reward).to(device).view(-1)
             next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor(
-                [term or trun for term, trun in zip(terminated,truncated)]
+                [term or trun for term, trun in zip(terminated, truncated)]
             ).to(device)
 
             for item in info:
@@ -258,8 +263,7 @@ if __name__ == "__main__":
                     )
                     break
 
-
-            #print(type(reward), reward.shape, reward)
+            # print(type(reward), reward.shape, reward)
             # writer.add_scalar("charts/reward", reward, global_step)
 
         # bootstrap value if not done
@@ -292,7 +296,7 @@ if __name__ == "__main__":
 
         # Optimizing the policy and value network
         b_inds = np.arange(args.batch_size)
-        clipfracs = [] # store number of clippings applied (for debugging)
+        clipfracs = []  # store number of clippings applied (for debugging)
         for epoch in range(args.update_epochs):
             np.random.shuffle(b_inds)
             for start in range(0, args.batch_size, args.minibatch_size):
@@ -307,8 +311,10 @@ if __name__ == "__main__":
 
                 with torch.no_grad():
                     # calculate approx_kl http://joschu.net/blog/kl-approx.html
-                    old_approx_kl = (-logratio).mean() # to see how aggressive update is (for debugging)
-                    approx_kl = ((ratio - 1) - logratio).mean() # (for debugging)
+                    old_approx_kl = (
+                        -logratio
+                    ).mean()  # to see how aggressive update is (for debugging)
+                    approx_kl = ((ratio - 1) - logratio).mean()  # (for debugging)
                     clipfracs += [
                         ((ratio - 1.0).abs() > args.clip_coef).float().mean().item()
                     ]
@@ -349,7 +355,7 @@ if __name__ == "__main__":
                 nn.utils.clip_grad_norm_(actor_critic.parameters(), args.max_grad_norm)
                 optimizer.step()
 
-            if args.target_kl is not None: #early stopping at batch level
+            if args.target_kl is not None:  # early stopping at batch level
                 if approx_kl > args.target_kl:
                     break
 
@@ -375,5 +381,5 @@ if __name__ == "__main__":
 
     envs.close()
     writer.close()
-    
-    torch.save(actor_critic,"actor_critic")
+
+    torch.save(actor_critic, "actor_critic")
