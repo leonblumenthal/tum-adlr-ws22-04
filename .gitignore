@@ -1,3 +1,6 @@
+actor_critic
+runs/
+
 # VS Code
 .vscode
 
@@ -130,5 +133,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-actor_critic

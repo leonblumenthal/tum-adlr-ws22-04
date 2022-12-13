@@ -20,11 +20,11 @@ class Agent:
 
     action_space = spaces.Box(low=-1, high=1, shape=(2,), dtype=float)
 
-
     def __init__(
         self,
         radius: float,
         max_velocity: float,
+        max_acceleration: float,
         reset_position: np.ndarray | None = None,
     ):
         """Initilaize the agent.
@@ -34,12 +34,13 @@ class Agent:
         Args:
             radius: Radius of the agent in the world
             max_velocity: Maximum velocity of the agent.
+            max_acceleration: Maximum acceleration of the agent.
             reset_position: Specific spawn position. Defaults to None.
         """
         self.radius = radius
         self.max_velocity = max_velocity
+        self.max_acceleration = max_acceleration
         self.reset_position = reset_position
-
 
     def reset(self, world_size: np.ndarray, np_random: np.random.Generator = np.random):
         """Store parameters from `BASEnv` and
@@ -61,9 +62,21 @@ class Agent:
             # .copy() is important because self.position is modified in-place in self.step().
             self.position = self.reset_position.astype(float).copy()
 
-    def step(self, direction: ActionType):
-        """Update the position with the next velocity, which equals `max_velocity` * `direction`"""
-        self.position += self.max_velocity * direction
+        # agents directional velocity
+        self.velocity = np.zeros_like(self.position)
+
+    def step(self, desired_velocity: ActionType):
+        """Update the position with the next velocity based desired velocity"""
+
+        acceleration = desired_velocity - self.velocity
+        clipped_acc_norm = np.linalg.norm(acceleration).clip(self.max_acceleration)
+        acceleration = acceleration * self.max_acceleration / clipped_acc_norm
+
+        self.velocity += acceleration
+        clipped_vel_norm = np.linalg.norm(self.velocity).clip(self.max_velocity)
+        self.velocity = self.velocity * self.max_velocity / clipped_vel_norm
+
+        self.position += self.velocity
 
         # Keep agent in bounds.
         self.position = np.clip(

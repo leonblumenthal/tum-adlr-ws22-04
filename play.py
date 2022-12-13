@@ -11,7 +11,12 @@ env = BASEnv(
     blueprint=Blueprint(
         world_size=np.array([100, 100]),
     ),
-    agent=Agent(radius=1, max_velocity=1, reset_position=np.array([50, 50])),
+    agent=Agent(
+        radius=1,
+        max_velocity=1.2,
+        max_acceleration=0.1,
+        reset_position=np.array([50, 50]),
+    ),
     swarm=Swarm(
         num_boids=100,
         radius=1,
