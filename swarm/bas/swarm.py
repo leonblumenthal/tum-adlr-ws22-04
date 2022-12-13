@@ -35,9 +35,9 @@ class Swarm:
     def __init__(
         self,
         num_boids: int,
-        radius: int,
-        max_velocity: int | None,
-        max_acceleration: int,
+        radius: float,
+        max_velocity: float | None,
+        max_acceleration: float,
         separation_range: float,
         alignment_range: float,
         cohesion_range: float,
