@@ -24,15 +24,9 @@ class SectionObservationWrapper(gym.ObservationWrapper):
 
         self._num_sections = num_sections
         self._max_range = max_range
-
-        if env.observation_space is None:
-            self._observation_space = spaces.Box(
-                low=-1, high=1, shape=(num_sections, 2)
-            )
-        else:
-            self._observation_space = spaces.Box(
-                low=-1, high=1, shape=(num_sections, 2)
-            )
+        self._observation_space = spaces.Box(
+            low=-1, high=1, shape=(num_sections, 2)
+        )
 
 
     def observation(self, _) -> np.ndarray:
