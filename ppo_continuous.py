@@ -246,8 +246,8 @@ if __name__ == "__main__":
                 action.cpu().numpy()
             )
             rewards[step] = torch.tensor(reward).to(device).view(-1)
-            next_obs, next_done = torch.Tensor(next_obs).to(device), torch.Tensor(
-                [term or trun for term, trun in zip(terminated, truncated)]
+            next_obs, next_done = torch.Tensor(next_obs).to(device), torch.tensor(
+                terminated | truncated
             ).to(device)
 
             for item in info:
