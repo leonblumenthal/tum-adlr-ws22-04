@@ -24,7 +24,7 @@ class Agent:
         self,
         radius: float,
         max_velocity: float,
-        max_acceleration: int,
+        max_acceleration: float,
         reset_position: np.ndarray | None = None,
     ):
         """Initilaize the agent.
