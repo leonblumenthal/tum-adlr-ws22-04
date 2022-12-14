@@ -181,6 +181,33 @@ class DistanceSectionObservationWrapperRenderer(Renderer):
             )
 
 
+class TargetDirectionObservationWrapperRenderer(Renderer):
+    """Renderer for the TargetDirectionObservationWrapper drawing the direction to the target."""
+
+    WRAPPER = wrappers.TargetDirectionObservationWrapper
+
+    def render(self, canvas: pygame.Surface):
+        """Draw target direction."""
+
+        self.line(
+            canvas,
+            Colors.OBSERVATION,
+            self.agent.position,
+            self.agent.position + self.cached_observation * self.agent.radius * 2,
+            4,
+        )
+
+
+class TargetDirectionAndSectionObservationWrapperRenderer(
+    SectionObservationWrapperRenderer
+):
+    WRAPPER = wrappers.TargetDirectionAndSectionObservationWrapper
+
+
+class SectionAndVelocityObservationWrapperRenderer(SectionObservationWrapperRenderer):
+    WRAPPER = wrappers.SectionAndVelocityObservationWrapper
+
+
 class RenderWrapper(gym.Wrapper):
     """Wrapper to render (wrapped) a BAS environments in "rgb_array" mode.
 
@@ -199,6 +226,9 @@ class RenderWrapper(gym.Wrapper):
             SectionObservationWrapperRenderer,
             DistanceSectionObservationWrapperRenderer,
             DistanceToTargetRewardWrapperRenderer,
+            TargetDirectionObservationWrapperRenderer,
+            TargetDirectionAndSectionObservationWrapperRenderer,
+            SectionAndVelocityObservationWrapperRenderer,
         ],
         window_scale: float = 10,
     ):
