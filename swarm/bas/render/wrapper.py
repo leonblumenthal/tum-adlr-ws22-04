@@ -145,6 +145,42 @@ class SectionObservationWrapperRenderer(Renderer):
             )
 
 
+class DistanceSectionObservationWrapperRenderer(Renderer):
+    """Renderer for the DistanceSectionObservationWrapper drawing observations and sections."""
+
+    WRAPPER = wrappers.DistanceSectionObservationWrapper
+
+    def render(self, canvas: pygame.Surface):
+        """Draw observed distances and sections."""
+        agent = self.agent
+        num_sections = self._num_sections
+        max_range = self._max_range
+
+        angle_step = 2 * np.pi / num_sections
+
+        for i, distance in enumerate(self.cached_observation):
+            # Draw section lines.
+            angle = i * angle_step
+            self.line(
+                canvas,
+                Colors.MISC,
+                agent.position,
+                agent.position + np.array([np.cos(angle), np.sin(angle)]) * max_range,
+                1,
+            )
+            self.line(
+                canvas,
+                Colors.OBSERVATION,
+                agent.position,
+                agent.position
+                + np.array(
+                    [np.cos(angle + angle_step / 2), np.sin(angle + angle_step / 2)]
+                )
+                * distance,
+                2,
+            )
+
+
 class RenderWrapper(gym.Wrapper):
     """Wrapper to render (wrapped) a BAS environments in "rgb_array" mode.
 
@@ -161,6 +197,7 @@ class RenderWrapper(gym.Wrapper):
         enabled_renderers: list[type[Renderer]] = [
             BASEnvRenderer,
             SectionObservationWrapperRenderer,
+            DistanceSectionObservationWrapperRenderer,
             DistanceToTargetRewardWrapperRenderer,
         ],
         window_scale: float = 10,
@@ -178,8 +215,9 @@ class RenderWrapper(gym.Wrapper):
         self.window_scale = window_scale
         self.window_size = self.env.blueprint.world_size * window_scale
         self._renderers = self._get_applicable_renderers(enabled_renderers)
-        self._metadata=env.metadata
-        self._metadata['render_fps']=30
+
+        self._metadata = env.metadata
+        self._metadata["render_fps"] = 30
 
     def _get_applicable_renderers(
         self, enabled_renderers: list[Renderer]
@@ -200,7 +238,6 @@ class RenderWrapper(gym.Wrapper):
 
         # Reversed because root env should be drawn first.
         return renderers[::-1]
-
 
     @property
     def render_mode(self) -> str:
