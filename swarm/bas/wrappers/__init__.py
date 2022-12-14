@@ -1,6 +1,8 @@
 """Wrappers for BAS environments."""
 
+from .boid_collision_wrapper import BoidCollisionWrapper
 from .discrete_action import DiscreteActionWrapper
+from .distance_section_observation import DistanceSectionObservationWrapper
 from .distance_to_target_reward import DistanceToTargetRewardWrapper
 from .flatten_observation_wrapper import FlattenObservationWrapper
 from .num_neighbors_reward import NumNeighborsRewardWrapper
