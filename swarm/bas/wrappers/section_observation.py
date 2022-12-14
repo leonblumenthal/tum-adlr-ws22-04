@@ -7,27 +7,32 @@ class SectionObservationWrapper(gym.ObservationWrapper):
     """BAS wrapper to create section observation.
 
     For each radial section/quadrant, compute the normalized
-    relative position to the nearest boid respectively.
+    relative position (- the radius) to the nearest boid respectively.
     """
 
     ObservationType = np.ndarray
 
-    def __init__(self, env: gym.Env, num_sections: int, max_range: float):
+    def __init__(
+        self,
+        env: gym.Env,
+        num_sections: int,
+        max_range: float,
+        subtract_radius: bool = False,
+    ):
         """Initalize the wrapper and set the observation space.
 
         Args:
             env: (Wrapped) BAS environment.
             num_sections: Number of radial section around the agent.
             max_range: Maximum range to consider boids.
+            subtract_radius: Subtract boid radius from distances.
         """
         super().__init__(env)
 
         self._num_sections = num_sections
         self._max_range = max_range
-        self._observation_space = spaces.Box(
-            low=-1, high=1, shape=(num_sections, 2)
-        )
-
+        self._subtract_radius = subtract_radius
+        self._observation_space = spaces.Box(low=-1, high=1, shape=(num_sections, 2))
 
     def observation(self, _) -> np.ndarray:
         """Create the section observation.
@@ -61,8 +66,15 @@ class SectionObservationWrapper(gym.ObservationWrapper):
                 boid_index = indices[section_boid_mask][boid_index]
 
                 # Create observation if boid is within max range.
-                if distances[boid_index] < self._max_range:
+                if (
+                    distances[boid_index]
+                    < self._max_range + self._subtract_radius * self.swarm.radius
+                ):
                     observation[section] = differences[boid_index] / self._max_range
+                    if self._subtract_radius:
+                        observation[section] *= (
+                            distances[boid_index] - self.swarm.radius
+                        ) / distances[boid_index]
                     continue
 
             # Set default observation (centered on the max range border of the section).
