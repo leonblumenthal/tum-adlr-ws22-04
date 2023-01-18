@@ -8,4 +8,5 @@ plotly
 nbformat
 pandas
 ipykernel
+ipywidgets
 torch
