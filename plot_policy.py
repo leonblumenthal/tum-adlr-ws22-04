@@ -60,7 +60,7 @@ def _create_figure(
         positions[:, 0] * env.window_scale,
         (env.blueprint.world_size[1] - positions[:, 1]) * env.window_scale,
         actions[:, 0],
-        actions[:, 1],
+        -actions[:, 1],
         angles="xy",
         scale_units="xy",
         scale=1 / env.window_scale / arrow_scale,
