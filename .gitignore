@@ -1,5 +1,7 @@
+# Project specific
 actor_critic
 runs/
+experiments
 
 # VS Code
 .vscode

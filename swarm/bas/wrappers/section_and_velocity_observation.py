@@ -11,16 +11,22 @@ class SectionAndVelocityObservationWrapper(SectionObservationWrapper):
     relative position to the nearest boid respectively.
     """
 
-
-    def __init__(self, env: gym.Env, num_sections: int, max_range: float):
+    def __init__(
+        self,
+        env: gym.Env,
+        num_sections: int,
+        max_range: float,
+        subtract_radius: bool = False,
+    ):
         """Initalize the wrapper and set the observation space.
 
         Args:
             env: (Wrapped) BAS environment.
             num_sections: Number of radial section around the agent.
             max_range: Maximum range to consider boids.
+            subtract_radius: Subtract boid radius from distances.
         """
-        super().__init__(env, num_sections, max_range)
+        super().__init__(env, num_sections, max_range, subtract_radius)
 
         self._observation_space = spaces.Box(
             low=-1, high=1, shape=(num_sections + 1, 2)
@@ -30,5 +36,5 @@ class SectionAndVelocityObservationWrapper(SectionObservationWrapper):
         """Create the section observation + velocity observation."""
 
         section_observation: np.ndarray = super().observation(obs)
-        velocity_observation: np.ndarray = self.agent.velocity/self.agent.max_velocity
+        velocity_observation: np.ndarray = self.agent.velocity / self.agent.max_velocity
         return np.concatenate([section_observation, [velocity_observation]])

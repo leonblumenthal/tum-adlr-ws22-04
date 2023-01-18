@@ -70,7 +70,7 @@ class BASEnv(gym.Env):
 
         # Dummy observation which is not None.
         observation = True
-        reward = None
+        reward = 0
         terminated = False
         truncated = False
         info = {}

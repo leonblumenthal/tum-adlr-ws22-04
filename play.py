@@ -33,8 +33,8 @@ env = BASEnv(
 env = wrappers.NumNeighborsRewardWrapper(env, max_range=20)
 env = wrappers.DiscreteActionWrapper(env, num_actions=5)
 env = wrappers.SectionObservationWrapper(env, num_sections=8, max_range=20)
-env = wrappers.FlattenObservationWrapper(env)
 env = RenderWrapper(env)
+env = wrappers.FlattenObservationWrapper(env)
 
 play(
     env,
