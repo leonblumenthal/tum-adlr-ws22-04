@@ -96,7 +96,7 @@ class GoalInsideGridEnv(gym.Wrapper):
             collision_reward=collision_reward,
             add_reward=True,
         )
-        
+
         env = RenderWrapper(env, window_scale=window_scale)
         env = wrappers.FlattenObservationWrapper(env)
 
@@ -104,7 +104,8 @@ class GoalInsideGridEnv(gym.Wrapper):
 
         super().__init__(env)
 
-class FollowBoidsEnv(gym.wrapper):
+
+class FollowBoidsEnv(gym.Wrapper):
     def __init__(self):
         blueprint = Blueprint(
             world_size=np.array([100, 100]),
@@ -115,7 +116,8 @@ class FollowBoidsEnv(gym.wrapper):
             max_acceleration=0.2,
             reset_position=np.array([5, 50]),
         )
-        swarm=Swarm(
+        swarm = (
+            Swarm(
                 num_boids=100,
                 radius=1,
                 max_velocity=1,
@@ -126,6 +128,7 @@ class FollowBoidsEnv(gym.wrapper):
                 steering_weights=(1.1, 1, 1),
                 obstacle_margin=3,
             ),
+        )
 
         env = BASEnv(blueprint, agent, swarm)
         env = wrappers.NumNeighborsRewardWrapper(env, max_range=20)

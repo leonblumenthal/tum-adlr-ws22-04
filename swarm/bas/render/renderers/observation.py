@@ -58,7 +58,7 @@ class SectionObservationWrapperRenderer(Renderer):
                 1,
             )
 
-class SectionObservationAndVelocityWrapperRenderer(Renderer):
+class SectionAndVelocityObservationWrapperRenderer(Renderer):
     """Renderer for the SectionObservationWrapper drawing observations and sections."""
 
     WRAPPER = wrappers.SectionAndVelocityObservationWrapper
@@ -173,7 +173,3 @@ class TargetDirectionAndSectionObservationWrapperRenderer(
     SectionObservationWrapperRenderer
 ):
     WRAPPER = wrappers.TargetDirectionAndSectionObservationWrapper
-
-
-class SectionAndVelocityObservationWrapperRenderer(SectionObservationWrapperRenderer):
-    WRAPPER = wrappers.SectionAndVelocityObservationWrapper
