@@ -57,7 +57,7 @@ class Swarm:
             max_acceleration: Maximum acceleration for each boid.
             separation_range, alignment_range, cohesion_range: Range in which boids are considered for the respective rule.
             steering_weights: Weighting between the three rules mentioned above.
-            obstacle_margin: Minimum distance at which boids are force awa from obstacles.
+            obstacle_margin: Minimum distance at which boids are forced away from obstacles.
             reset_positions: Specific spawn positions. Defaults to None.
             reset_velocities: Specific spawn velocities. Defaults to None.
         """

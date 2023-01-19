@@ -103,3 +103,35 @@ class GoalInsideGridEnv(gym.Wrapper):
         env = gym.wrappers.TimeLimit(env, 500)
 
         super().__init__(env)
+
+class FollowBoidsEnv(gym.wrapper):
+    def __init__(self):
+        blueprint = Blueprint(
+            world_size=np.array([100, 100]),
+        )
+        agent = Agent(
+            radius=1,
+            max_velocity=1,
+            max_acceleration=0.2,
+            reset_position=np.array([5, 50]),
+        )
+        swarm=Swarm(
+                num_boids=100,
+                radius=1,
+                max_velocity=1,
+                max_acceleration=0.1,
+                separation_range=5,
+                cohesion_range=10,
+                alignment_range=10,
+                steering_weights=(1.1, 1, 1),
+                obstacle_margin=3,
+            ),
+
+        env = BASEnv(blueprint, agent, swarm)
+        env = wrappers.NumNeighborsRewardWrapper(env, max_range=20)
+        env = wrappers.SectionAndVelocityObservationWrapper(
+            env, num_sections=8, max_range=20
+        )
+        env = wrappers.FlattenObservationWrapper(env)
+        env = gym.wrappers.TimeLimit(env, 500)
+        super().__init__(env)
