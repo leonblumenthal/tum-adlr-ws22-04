@@ -30,7 +30,6 @@ def _get_observations(env: BASEnv, positions: np.ndarray) -> np.ndarray:
     observations = []
     for position in positions:
         env.agent.position = position.astype(float)
-        env.agent.velocity = (np.array([100,100])-position.astype(float))/1000
         observations.append(env.step(np.zeros((2,), dtype=float))[0])
     observations = np.array(observations)
     return observations
