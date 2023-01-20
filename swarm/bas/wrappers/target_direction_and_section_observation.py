@@ -41,6 +41,7 @@ class TargetDirectionAndSectionObservationWrapper(wrappers.SectionObservationWra
         difference = self._position - self.agent.position
         distance = np.linalg.norm(difference)
         if distance < 1e-6:
+            # TODO: Wrong dimensions
             return np.array([0, 0])
         target_observation = difference / distance
 
