@@ -34,7 +34,7 @@ class SneakyGridAndGoalEnv(gym.Wrapper):
             env, num_sections=16, max_range=20, subtract_radius=False
         )
         env = wrappers.TargetRewardWrapper(
-            env, position=np.array([195, 50]), distance_reward_scale=1, target_reward=10
+            env, position=np.array([195, 50]), target_reward=10
         )
         env = wrappers.BoidCollisionWrapper(
             env, collision_termination=True, collision_reward=-10
@@ -53,7 +53,7 @@ class GoalInsideGridEnv(gym.Wrapper):
         self,
         collision_termination: bool = False,
         collision_reward: int = 0,
-        window_scale: float = 5,
+        window_scale: float | None = 5,
     ):
         blueprint = Blueprint(
             world_size=np.array([200, 200]),
@@ -86,9 +86,8 @@ class GoalInsideGridEnv(gym.Wrapper):
         env = wrappers.TargetRewardWrapper(
             env,
             position=target,
-            distance_reward_scale=1,
             target_radius=3,
-            target_reward=100,
+            target_reward=1,
         )
         env = wrappers.BoidCollisionWrapper(
             env,
@@ -97,7 +96,9 @@ class GoalInsideGridEnv(gym.Wrapper):
             add_reward=True,
         )
 
-        env = RenderWrapper(env, window_scale=window_scale)
+        if window_scale is not None:
+            env = RenderWrapper(env, window_scale=window_scale)
+
         env = wrappers.FlattenObservationWrapper(env)
 
         env = gym.wrappers.TimeLimit(env, 500)
