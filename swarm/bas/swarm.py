@@ -97,7 +97,7 @@ class Swarm:
         else:
             # .copy() is important because self.positions is modified in-place in self.step().
             self.positions = self.reset_positions.copy()
-        
+
         # Velocities from last step are needed for computation.
         self.velocities = np.zeros_like(self.positions)
         if self.reset_velocities is not None and self.max_velocity is not None:
@@ -142,28 +142,12 @@ class Swarm:
         # difference[i, j] <=> vector from i to j.
         differences = self.positions[None, :] - self.positions[:, None, :]
         distances = np.linalg.norm(differences, axis=-1, keepdims=True)
-        # Ensure that the distance to itself is greater than all ranges.
+        # Ensure that the distance to itself is greater than all ranges so that they are not considered in the subsequent calculations.
         distances += np.eye(distances.shape[0])[..., None] * self._self_distance
 
-        # 1. Separation: Steer away from neighbors that are within the separation range.
-        # i.e. negative mean of weighted (1/distance) difference vectors to neighbors.
-        separation = -np.sum(
-            differences / distances**2 * (distances < self.separation_range),
-            axis=1,
-        )
-        separation = normalize(separation)
-
-        # 2. Alignment: Steer in the same direction as neighbors,
-        # i.e. mean/sum of velocities of neighbors
-        alignment = np.sum(self.velocities * (distances < self.alignment_range), axis=1)
-        alignment = normalize(alignment)
-
-        # 3. Cohesion: teer towards center of neighbors,
-        # i.e. mean of difference vectors to neighbors
-        cohesion = np.sum(
-            differences / distances * (distances < self.cohesion_range), axis=1
-        )
-        cohesion = normalize(cohesion)
+        separation = self._compute_separation(differences, distances)
+        alignment = self._compute_alignment(distances)
+        cohesion = self._compute_cohesion(differences, distances)
 
         # Compute desired velocities as weighted average.
         ws, wa, wc = self.steering_weights
@@ -172,6 +156,46 @@ class Swarm:
         )
 
         return desired_velocities
+
+    def _compute_separation(self, differences: np.ndarray, distances: np.ndarray) -> np.ndarray:
+        """
+        Compute normalized desired velocities as given by seperation rule:
+        Steer away from neighbors that are within the separation range, i.e. negative mean of weighted (1/distance) difference vectors to neighbors.
+
+        Args:
+            differences: pairwise difference vectors of boids
+            distances: pairwise distance values of boids (with entries in diagonal >= self.separation_range)
+        """
+        separation = -np.sum(
+            differences / distances**2 * (distances < self.separation_range),
+            axis=1,
+        )
+        return normalize(separation)
+
+    def _compute_alignment(self, distances: np.ndarray) -> np.ndarray:
+        """
+        Compute normalized desired velocities as given by alignment rule:
+        Steer in the same direction as neighbors, i.e. mean/sum of velocities of neighbors.
+
+        Args:
+            distances: pairwise distance values of boids (with entries in diagonal >= self.alignment_range)
+        """
+        alignment = np.sum(self.velocities * (distances < self.alignment_range), axis=1)
+        return normalize(alignment)
+
+    def _compute_cohesion(self, differences: np.ndarray, distances: np.ndarray) -> np.ndarray:
+        """
+        Compute normalized desired velocities as given by cohesion rule:
+        Steer towards center of neighbors,  i.e. mean of difference vectors to neighbors.
+
+        Args:
+            differences: pairwise difference vectors of boids
+            distances: pairwise distance values of boids (with entries in diagonal >= self.cohesion_range)
+        """
+        cohesion = np.sum(
+            differences / distances * (distances < self.cohesion_range), axis=1
+        )
+        return normalize(cohesion)
 
     def _compute_obstacle_bounce(self) -> np.ndarray:
         """Compute the obstacle avoidance velocities.
@@ -203,3 +227,51 @@ class Swarm:
         bounce += np.array([[0, -1]]) * (dyn > 0) * dyn
 
         return limit(bounce, 1)
+
+
+class SourceSinkSwarm(Swarm):
+    def __init__(
+        self,
+        num_boids: int,
+        radius: float,
+        max_velocity: float | None,
+        max_acceleration: float,
+        separation_range: float,
+        alignment_range: float,
+        cohesion_range: float,
+        steering_weights: tuple[float, float, float, float],
+        spawn_probability: float,
+        target_position: tuple[float, float],
+        target_radius: float,
+        spawn_position: float,
+        spawn_radius: float,
+        obstacle_margin: float,
+    ):
+        super().__init__(
+            num_boids,
+            radius,
+            max_velocity,
+            max_acceleration,
+            separation_range,
+            alignment_range,
+            cohesion_range,
+            steering_weights[0:3],
+            obstacle_margin,
+            None,
+            None,
+        )
+
+        self.target_position = target_position
+
+    def reset(self, world_size: np.ndarray, np_random: np.random.Generator = np.random):
+        pass
+
+    def step(self):
+        pass
+
+    def _compute_target_direction(self) -> np.ndarray:
+        """
+        Compute normalized desired velocities as given by movement towards the target.
+        """
+        target_direction = self.target_position - self.positions
+        return normalize(target_direction)
