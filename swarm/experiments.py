@@ -151,10 +151,10 @@ class RelativeDynamicRandomTargetEnv(gym.Wrapper):
         swarm_warmup_steps: int | tuple[int, int] = 0,
         collision_termination: bool = False,
         collision_reward: int = 0,
+        add_collision_reward: bool = True,
         distance_reward_transform: Callable[[float], float] = lambda d: -d,
         target_radius: float = 3,
         target_reward: float = 3,
-        add_reward: bool = True,
         time_limit: int = 1000,
         window_scale: float | None = 5,
     ):
@@ -198,7 +198,7 @@ class RelativeDynamicRandomTargetEnv(gym.Wrapper):
             env,
             collision_termination=collision_termination,
             collision_reward=collision_reward,
-            add_reward=add_reward,
+            add_reward=add_collision_reward,
         )
 
         if window_scale is not None:
