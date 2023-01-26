@@ -149,6 +149,7 @@ class RelativeDynamicRandomTargetEnv(gym.Wrapper):
     def __init__(
         self,
         swarm_warmup_steps: int | tuple[int, int] = 0,
+        num_sections: int = 8,
         collision_termination: bool = False,
         collision_reward: int = 0,
         add_collision_reward: bool = True,
@@ -185,7 +186,7 @@ class RelativeDynamicRandomTargetEnv(gym.Wrapper):
         target = env.target
 
         env = wrappers.TargetDirectionAndSectionObservationWrapper(
-            env, num_sections=8, max_range=20, position=target, subtract_radius=True
+            env, num_sections=num_sections, max_range=20, position=target, subtract_radius=True
         )
         env = wrappers.TargetRewardWrapper(
             env,
