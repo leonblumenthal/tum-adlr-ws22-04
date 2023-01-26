@@ -14,3 +14,4 @@ from .relative_rotation import RelativeRotationWrapper
 from .info_add_wrapper import InfoAddWrapper
 from .trajectory_wrapper import TrajectoryWrapper
 from .random_target_wrapper import RandomTargetWrapper
+from .swarm_warmup_wrapper import SwarmWarmUpWrapper
