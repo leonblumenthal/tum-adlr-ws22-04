@@ -13,3 +13,4 @@ from .target_direction_and_section_observation import TargetDirectionAndSectionO
 from .relative_rotation import RelativeRotationWrapper
 from .info_add_wrapper import InfoAddWrapper
 from .trajectory_wrapper import TrajectoryWrapper
+from .random_target_wrapper import RandomTargetWrapper
