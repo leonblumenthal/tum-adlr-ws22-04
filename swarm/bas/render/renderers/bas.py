@@ -11,9 +11,16 @@ class BASEnvRenderer(Renderer):
     WRAPPER = BASEnv
 
     def render(self, canvas: pygame.Surface):
-        """Draw the agent position and position and velocity of the boids."""
+        """Draw the agent's position and velocity and velocity of the boids."""
         agent: Agent = self.agent
         self.circle(canvas, Colors.AGENT, agent.position, agent.radius)
+        self.line(
+            canvas,
+            Colors.AGENT,
+            agent.position,
+            agent.position + agent.velocity * agent.max_velocity * agent.radius * 10,
+            4,
+        )
 
         swarm: Swarm = self.swarm
         for position, velocity in zip(swarm.positions, swarm.velocities):
