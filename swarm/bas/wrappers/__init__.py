@@ -11,3 +11,7 @@ from .section_and_velocity_observation import SectionAndVelocityObservationWrapp
 from .target_direction_observation import TargetDirectionObservationWrapper
 from .target_direction_and_section_observation import TargetDirectionAndSectionObservationWrapper
 from .relative_rotation import RelativeRotationWrapper
+from .info_add_wrapper import InfoAddWrapper
+from .trajectory_wrapper import TrajectoryWrapper
+from .random_target_wrapper import RandomTargetWrapper
+from .swarm_warmup_wrapper import SwarmWarmUpWrapper
