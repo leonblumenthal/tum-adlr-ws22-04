@@ -24,6 +24,7 @@ from swarm.bas.render.renderers.reward import (
 
 @dataclass
 class CachedStep:
+    action: Any
     observation: Any
     reward: float
     terminated: bool
@@ -106,7 +107,7 @@ class RenderWrapper(gym.Wrapper):
         ret = super().step(action)
 
         # Cache for rendering.
-        self.cached_step = CachedStep(*ret)
+        self.cached_step = CachedStep(action, *ret)
 
         return ret
 
@@ -115,7 +116,7 @@ class RenderWrapper(gym.Wrapper):
         ret = super().reset(**kwargs)
 
         # Cache for rendering.
-        self.cached_step = CachedStep(ret[0], 0, False, False, {})
+        self.cached_step = CachedStep(None, ret[0], 0, False, False, {})
 
         return ret
 
