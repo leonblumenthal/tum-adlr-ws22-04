@@ -42,6 +42,9 @@ class Agent:
         self.max_acceleration = max_acceleration
         self.reset_position = reset_position
 
+        #initialized here to allow referencing before reset is called
+        self.position = np.zeros(2,dtype=float)
+
     def reset(self, world_size: np.ndarray, np_random: np.random.Generator = np.random):
         """Store parameters from `BASEnv` and
         (re)set the position randomly or to `reset_position` if specified.
@@ -53,14 +56,14 @@ class Agent:
 
         if self.reset_position is None:
             # Set position randomly without intersecting the world border.
-            self.position = (
+            self.position[:] = (
                 self.np_random.uniform(low=0, high=1, size=2)
                 * (self.world_size - 2 * self.radius)
                 + self.radius
             )
         else:
             # .copy() is important because self.position is modified in-place in self.step().
-            self.position = self.reset_position.astype(float).copy()
+            self.position[:] = self.reset_position.astype(float).copy()
 
         # agents directional velocity
         self.velocity = np.zeros_like(self.position)
@@ -79,7 +82,7 @@ class Agent:
         self.position += self.velocity
 
         # Keep agent in bounds.
-        self.position = np.clip(
+        self.position[:] = np.clip(
             self.position,
             a_min=self.radius,
             a_max=self.world_size - self.radius,
