@@ -6,6 +6,7 @@ import gymnasium as gym
 
 from swarm.bas import wrappers
 from swarm.bas import Agent, BASEnv, Blueprint, RenderWrapper, Swarm, wrappers
+from swarm.bas.swarm import InstantSpawner, SwarmConfig
 from swarm.bas.wrappers.observation import components
 
 blueprint = Blueprint(
@@ -17,16 +18,19 @@ agent = Agent(
     max_acceleration=0.2,
 )
 swarm = Swarm(
-    num_boids=100,
-    radius=2,
-    max_velocity=1,
-    max_acceleration=0.1,
-    separation_range=10,
-    cohesion_range=20,
-    alignment_range=20,
-    steering_weights=(1.1, 1, 1),
-    obstacle_margin=3,
-)
+            SwarmConfig(
+               num_boids=100,
+                radius=2,
+                max_velocity=1,
+                max_acceleration=0.1,
+                separation_range=10,
+                cohesion_range=20,
+                alignment_range=20,
+                steering_weights=(1.1, 1, 1, 0.0),
+                obstacle_margin=3,
+            ),
+            InstantSpawner()
+        )
 env = BASEnv(blueprint, agent, swarm)
 
 
