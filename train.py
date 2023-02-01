@@ -71,6 +71,8 @@ def f():
 
     env = wrappers.TrajectoryWrapper(env)
 
+    return env
+
 
 
 curriculum = [(100000, f)]

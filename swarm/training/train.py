@@ -32,11 +32,12 @@ class DrawTrajectoriesCallback(BaseCallback):
         """Initialize the callback with a renderable BAS environment."""
         super().__init__(verbose=0)
 
-        width, height = env.blueprint.world_size
-        self.background_image = np.ones(
-            (height * window_scale, width * window_scale, 3), dtype=np.uint8
-        ) * 255
-        self.window_scale = env.window_scale
+        width, height = env.blueprint.world_size.astype(int)
+        self.background_image = (
+            np.ones((height * window_scale, width * window_scale, 3)).astype(np.uint8)
+            * 255
+        )
+        self.window_scale = window_scale
 
     def _on_rollout_end(self):
         """Draw the trajectories from the last 100 episodes and log them."""
