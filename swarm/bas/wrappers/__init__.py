@@ -10,8 +10,9 @@ from .section_observation import SectionObservationWrapper
 from .section_and_velocity_observation import SectionAndVelocityObservationWrapper
 from .target_direction_observation import TargetDirectionObservationWrapper
 from .target_direction_and_section_observation import TargetDirectionAndSectionObservationWrapper
-from .relative_rotation import RelativeRotationWrapper
+from .relative_action import RelativeActionWrapper
 from .info_add_wrapper import InfoAddWrapper
 from .trajectory_wrapper import TrajectoryWrapper
 from .random_target_wrapper import RandomTargetWrapper
-from .swarm_warmup_wrapper import SwarmWarmUpWrapper
+from .observation.container_wrapper import ObservationContainerWrapper
+from .observation.flatten_wrapper import FlattenObservationWrapper

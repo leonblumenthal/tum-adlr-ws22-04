@@ -65,8 +65,8 @@ class Agent:
             # .copy() is important because self.position is modified in-place in self.step().
             self.position[:] = self.reset_position.astype(float).copy()
 
-        # agents directional velocity
         self.velocity = np.zeros_like(self.position)
+        self.angle = 0
 
     def step(self, desired_velocity: ActionType):
         """Update the position with the next velocity based desired velocity"""
@@ -78,6 +78,7 @@ class Agent:
         self.velocity += acceleration
         clipped_vel_norm = np.linalg.norm(self.velocity).clip(self.max_velocity)
         self.velocity = self.velocity * self.max_velocity / clipped_vel_norm
+        self.angle = np.arctan2(self.velocity[1], self.velocity[0])
 
         self.position += self.velocity
 
