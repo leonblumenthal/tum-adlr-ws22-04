@@ -8,24 +8,18 @@ import pygame
 from swarm.bas.render.constants import Colors
 from swarm.bas.render.renderers.bas import BASEnvRenderer
 from swarm.bas.render.renderers.misc import AgentTrajectoryRenderer
-from swarm.bas.render.renderers.observation import (
-    DistanceSectionObservationWrapperRenderer,
-    SectionAndVelocityObservationWrapperRenderer,
-    SectionObservationWrapperRenderer,
-    TargetDirectionAndSectionObservationWrapperRenderer,
-    TargetDirectionObservationWrapperRenderer,
-)
 from swarm.bas.render.renderers.renderer import Renderer
 from swarm.bas.render.renderers.reward import (
     NumNeighborsRewardWrapperRenderer,
     TargetRewardWrapperRenderer,
 )
+from swarm.bas.render.renderers.observation import ObservationContainerWrapperRenderer
 
 
 @dataclass
 class CachedStep:
     action: Any
-    observation: Any
+    observation: list[np.ndarray]
     reward: float
     terminated: bool
     truncated: bool
@@ -47,14 +41,10 @@ class RenderWrapper(gym.Wrapper):
         env: gym.Env,
         enabled_renderers: list[type[Renderer]] = [
             BASEnvRenderer,
-            SectionObservationWrapperRenderer,
-            DistanceSectionObservationWrapperRenderer,
             TargetRewardWrapperRenderer,
-            TargetDirectionObservationWrapperRenderer,
-            TargetDirectionAndSectionObservationWrapperRenderer,
-            SectionAndVelocityObservationWrapperRenderer,
             NumNeighborsRewardWrapperRenderer,
             AgentTrajectoryRenderer,
+            ObservationContainerWrapperRenderer,
         ],
         window_scale: float = 10,
     ):
@@ -62,7 +52,7 @@ class RenderWrapper(gym.Wrapper):
 
         Args:
             env: (Wrapped) BAS environment to render.
-            enabled_renderer:s Enabled renderers that are used if applicable.
+            enabled_renderers: Enabled renderers that are used if applicable.
             window_scale: Ratio between window size and world size. Defaults to 10.
         """
         super().__init__(env)
