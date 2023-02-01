@@ -18,10 +18,6 @@ def limit(vectors: np.ndarray, max_norm: float) -> np.ndarray:
     return vectors * max_norm / clipped_norms
 
 
-class SwarmConfigGenerator:
-    pass
-
-
 class SwarmConfig:
     def __init__(
         self,
