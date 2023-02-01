@@ -10,7 +10,11 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
-from swarm.training.callbacks import DrawTrajectoriesCallback, SuccessRateCallback
+from swarm.training.callbacks import (
+    DrawTrajectoriesCallback,
+    SuccessRateCallback,
+    VideoRecorderCallback,
+)
 
 
 def create_parallel_env(
@@ -28,6 +32,9 @@ def train(
     curriculum: list[int, Callable[[], gym.Env]],
     experiment_path: Path,
     num_processes: int,
+    video_every_n_steps: int | None = None,
+    video_num_steps: int = 1000,
+    video_window_scale: int = 3,
     runs_path: Path = Path("runs"),
 ):
     model = None
@@ -49,9 +56,21 @@ def train(
         else:
             model.set_env(env)
 
+        callbacks = [SuccessRateCallback(), DrawTrajectoriesCallback(create_env())]
+
+        if video_every_n_steps is not None:
+            callbacks.append(
+                VideoRecorderCallback(
+                    create_env(),
+                    video_every_n_steps,
+                    video_num_steps,
+                    video_window_scale,
+                )
+            )
+
         model.learn(
             total_timesteps=num_steps,
-            callback=[SuccessRateCallback(), DrawTrajectoriesCallback(create_env())],
+            callback=callbacks,
             reset_num_timesteps=False,
         )
 
