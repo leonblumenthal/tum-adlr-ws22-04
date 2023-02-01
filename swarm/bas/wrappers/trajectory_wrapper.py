@@ -16,7 +16,7 @@ class TrajectoryWrapper(gym.Wrapper):
         """Store first position of the agent's trajectory."""
         observation, info = self.env.reset(**kwargs)
 
-        self._trajectory = [self.agent.position]
+        self._trajectory = [self.agent.position.copy()]
 
         return observation, info
 
@@ -24,7 +24,7 @@ class TrajectoryWrapper(gym.Wrapper):
         """Accumulate the agent's trajectory and store it in info if the episode ends."""
         observation, reward, terminated, truncated, info = self.env.step(action)
 
-        self._trajectory.append(self.agent.position)
+        self._trajectory.append(self.agent.position.copy())
 
         if terminated or truncated:
             info["agent_trajectory"] = self._trajectory
