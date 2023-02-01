@@ -14,6 +14,5 @@ from .relative_action import RelativeActionWrapper
 from .info_add_wrapper import InfoAddWrapper
 from .trajectory_wrapper import TrajectoryWrapper
 from .random_target_wrapper import RandomTargetWrapper
-from .swarm_warmup_wrapper import SwarmWarmUpWrapper
 from .observation.container_wrapper import ObservationContainerWrapper
 from .observation.flatten_wrapper import FlattenObservationWrapper
