@@ -28,7 +28,7 @@ class RelativeRotationWrapper(gym.ActionWrapper):
         # Return last rotation if velocity is zero.
         if velocity_norm < 1e-6:
             if self._cached_rotation is None:
-                angle = np.random.random() * 2 * np.pi
+                angle = self.np_random.random() * 2 * np.pi
                 sin = np.sin(angle)
                 cos = np.cos(angle)
                 return np.array([[cos, sin], [-sin, cos]])

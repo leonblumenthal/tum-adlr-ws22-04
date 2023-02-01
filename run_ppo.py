@@ -1,22 +1,17 @@
 import argparse
-import os
+import pathlib
 import sys
 
 import gymnasium as gym
 
 sys.modules["gym"] = gym
-
-
-# TODO: Specific install of stable_baselines3 compatible to gymnasium
 from stable_baselines3 import PPO
 
-from swarm.experiments import GoalInsideGridEnv
+from swarm.experiments import RelativeDynamicRandomTargetEnv
 
 
-# TODO: WIP
-def main(parameters_path: str):
-    """Train PPO on GoalInsideGridEnv."""
-    env = GoalInsideGridEnv()
+def run_ppo(parameters_path: str):
+    env = RelativeDynamicRandomTargetEnv()
 
     model = PPO.load(parameters_path)
 
@@ -24,22 +19,20 @@ def main(parameters_path: str):
 
     obs, info = env.reset()
     while True:
-        action, _states = model.predict(obs)
-        obs, rewards, terminated, truncated, info = env.step(action)
+        action, _ = model.predict(obs)
+        obs, reward, terminated, truncated, info = env.step(action)
 
         env.render()
 
         if terminated or truncated:
             obs, info = env.reset()
 
+        print(f"{reward=}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("experiment_name", type=str)
-    parser.add_argument("--experiments_directory", type=str, default="experiments")
-
+    parser.add_argument("model_path", type=pathlib.Path)
     args = parser.parse_args()
 
-    parameters_path = os.path.join(args.experiments_directory, args.experiment_name)
-
-    main(parameters_path)
+    run_ppo(args.model_path)
