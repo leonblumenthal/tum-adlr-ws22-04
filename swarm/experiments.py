@@ -175,6 +175,9 @@ class SourceSinkEnv(gym.Wrapper):
         collision_termination: bool = False,
         collision_reward: int = 0,
         window_scale: float = 5,
+        distance_reward_transform: Callable[[float], float] = lambda d: -d,
+        target_radius: float = 3,
+        target_reward: float = 3,
     ):
         blueprint = Blueprint(
             world_size=np.array([200, 200]),
@@ -196,9 +199,10 @@ class SourceSinkEnv(gym.Wrapper):
                 steering_weights=(2, 1, 1, 0.8),
                 obstacle_margin=5,
                 target_position=agent.position,
-                target_despawn=False,
+                target_despawn=True,
             ),
-            BernoulliSpawner(spawn_probability=0.08, spawn_radius=30,spawn_position=np.array([150, 150]))
+            BernoulliSpawner(spawn_probability=0.08, spawn_radius=30,spawn_position=np.array([150, 150])),
+            reset_between_episodes=False,
         )
 
         env = BASEnv(blueprint, agent, swarm)
@@ -210,9 +214,9 @@ class SourceSinkEnv(gym.Wrapper):
         env = wrappers.TargetRewardWrapper(
             env,
             position=target,
-            distance_reward_scale=1,
-            target_radius=3,
-            target_reward=100,
+            target_radius=target_radius,
+            target_reward=target_reward,
+            distance_reward_transform=distance_reward_transform,
         )
         env = wrappers.BoidCollisionWrapper(
             env,

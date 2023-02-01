@@ -158,7 +158,7 @@ class InstantSpawner(Spawner):
             # .copy() is important to prevent modifications of self.spawn_positions in-place.
             positions = self.spawn_positions.copy()
 
-        velocities = np.zeros_like(positions,dtype=float)
+        velocities = np.zeros_like(positions, dtype=float)
         if self.spawn_velocities is not None and config.max_velocity is not None:
             velocities += self.spawn_velocities
 
@@ -212,7 +212,7 @@ class BernoulliSpawner(Spawner):
             )
 
         active_boids_mask = np.full(config.num_boids, False)
-        positions = np.zeros((config.num_boids, 2),dtype=float)
+        positions = np.zeros((config.num_boids, 2), dtype=float)
         velocities = np.zeros_like(positions, dtype=float)
         return (active_boids_mask, positions, velocities)
 
@@ -258,6 +258,7 @@ class Swarm:
         self,
         config: SwarmConfig,
         spawner: Spawner,
+        reset_between_episodes: bool = True,
     ):
 
         """Initialize the swarm.
@@ -270,6 +271,9 @@ class Swarm:
         """
         self.config = config
         self.spawner = spawner
+
+        self.active_boids_mask = None
+        self.reset_between_episodes = reset_between_episodes
 
         # Used to set distance to self further than all ranges.
         self._self_distance = max(
@@ -295,7 +299,7 @@ class Swarm:
     @property
     def target_position(self):
         return self._target_position
-    
+
     @property
     def max_velocity(self):
         return self.config.max_velocity
@@ -314,18 +318,18 @@ class Swarm:
         # World is [0, world_size[0]] x [0, world_size[1]].
         self.world_size = world_size
         self.np_random = np_random
-        self.active_boids_mask, self._positions, self._velocities = self.spawner.reset(
-            self.config, world_size, np_random
-        )
+
+        if self.active_boids_mask is None or self.reset_between_episodes:
+            (
+                self.active_boids_mask,
+                self._positions,
+                self._velocities,
+            ) = self.spawner.reset(self.config, world_size, np_random)
 
         weights = self.config.steering_weights
-        if (
-            type(weights) is tuple
-            and len(weights) > 3
-            and weights[3] > 0
-        ):
+        if type(weights) is tuple and len(weights) > 3 and weights[3] > 0:
             if self.config.target_position is None:
-            # Sample target position randomly in world size.
+                # Sample target position randomly in world size.
                 self._target_position = self.np_random.uniform(
                     low=self.config.target_radius,
                     high=self.world_size - self.config.target_radius,
@@ -357,17 +361,13 @@ class Swarm:
         if self.config.target_despawn:
             self.deactivate_target_boids()
 
-        self.spawner.step(
-            self.active_boids_mask, self._positions, self._velocities
-        )
+        self.spawner.step(self.active_boids_mask, self._positions, self._velocities)
 
         if not self.active_boids_mask.any():
             return
 
         # Compute desired velocities and resulting accelerations.
-        desired_velocities = (
-            self._compute_desired_velocities() * self.max_velocity
-        )
+        desired_velocities = self._compute_desired_velocities() * self.max_velocity
         accelerations = desired_velocities - self._velocities[self.active_boids_mask]
         accelerations = limit(accelerations, self.config.max_acceleration)
 
@@ -389,7 +389,14 @@ class Swarm:
             return np.zeros_like(self._velocities[self.active_boids_mask])
         target_direction = self._target_position - positions
         distances = np.linalg.norm(target_direction, axis=-1, keepdims=True)
-        return normalize(target_direction * (distances < self.config.target_range if self.config.target_range else True))
+        return normalize(
+            target_direction
+            * (
+                distances < self.config.target_range
+                if self.config.target_range
+                else True
+            )
+        )
 
     def _compute_separation(
         self, differences: np.ndarray, distances: np.ndarray
@@ -496,9 +503,7 @@ class Swarm:
             self._velocities[self.active_boids_mask], distances
         )
         cohesion = self._compute_cohesion(differences, distances)
-        target_direction = self._compute_target_direction(
-            active_positions
-        )
+        target_direction = self._compute_target_direction(active_positions)
 
         # Compute desired velocities as weighted average.
         ws, wa, wc, wt = self.config.steering_weights
