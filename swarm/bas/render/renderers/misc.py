@@ -18,7 +18,7 @@ class AgentTrajectoryRenderer(Renderer):
 
     def render(self, canvas: pygame.Surface):
         """Draw and store the trajectories of the agent."""
-        self._positions[-1].append(self.agent.position)
+        self._positions[-1].append(self.agent.position.copy())
 
         if self.cached_step.terminated or self.cached_step.truncated:
             self._positions.append([])
