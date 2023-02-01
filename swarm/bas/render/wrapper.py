@@ -43,7 +43,7 @@ class RenderWrapper(gym.Wrapper):
             BASEnvRenderer,
             TargetRewardWrapperRenderer,
             NumNeighborsRewardWrapperRenderer,
-            AgentTrajectoryRenderer,
+            # AgentTrajectoryRenderer,
             ObservationContainerWrapperRenderer,
         ],
         window_scale: float = 10,
