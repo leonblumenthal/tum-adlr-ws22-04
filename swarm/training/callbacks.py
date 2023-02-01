@@ -5,8 +5,10 @@ import gymnasium as gym
 sys.modules["gym"] = gym
 
 import numpy as np
+import torch
 from stable_baselines3.common.callbacks import BaseCallback
-from stable_baselines3.common.logger import Image
+from stable_baselines3.common.evaluation import evaluate_policy
+from stable_baselines3.common.logger import Image, Video
 from stable_baselines3.common.utils import safe_mean
 
 from swarm.analysis.reward import create_reward_heatmap
@@ -105,4 +107,42 @@ class SuccessRateCallback(BaseCallback):
 
     # This is required?!
     def _on_step(self) -> bool:
+        return True
+
+
+# Copied from https://stable-baselines3.readthedocs.io/en/master/guide/tensorboard.html#logging-videos.
+class VideoRecorderCallback(BaseCallback):
+    def __init__(
+        self,
+        env: gym.Env,
+        every_n_step: int,
+        num_steps: int,
+        window_scale: float,
+    ):
+        super().__init__()
+        self._env = env
+        self._every_n_step = every_n_step
+        self._num_steps = num_steps
+
+        inject_render_wrapper(self._env, window_scale=window_scale)
+
+    def _on_step(self) -> bool:
+        if self.n_calls % (self._every_n_step // self.training_env.num_envs) == 0:
+            env = self._env
+            images = []
+            obs, _ = env.reset()
+            for _ in range(self._num_steps):
+                action, _ = self.model.predict(obs)
+                obs, _, terminated, truncated, _ = env.step(action)
+
+                images.append(env.render().transpose(2, 0, 1))
+
+                if terminated or truncated:
+                    obs, _ = env.reset()
+
+            self.logger.record(
+                "video",
+                Video(torch.ByteTensor(np.array(images)[None, :]), fps=30),
+                exclude=("stdout", "log", "json", "csv"),
+            )
         return True
