@@ -10,3 +10,4 @@ pandas
 ipykernel
 ipywidgets
 torch
+moviepy
