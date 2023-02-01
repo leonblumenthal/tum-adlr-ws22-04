@@ -190,11 +190,12 @@ class Swarm:
             differences: pairwise difference vectors of boids
             distances: pairwise distance values of boids (with entries in diagonal >= self.separation_range)
         """
+        mask = distances < self.config.separation_range
         separation = -np.sum(
-            differences / distances**2 * (distances < self.config.separation_range),
+            differences / distances**2 * mask,
             axis=1,
         )
-        return normalize(separation)
+        return normalize(separation), mask.any(axis=1)
 
     def _compute_alignment(
         self, velocities: np.ndarray, distances: np.ndarray
@@ -207,10 +208,9 @@ class Swarm:
             velocities: velocities of boids
             distances: pairwise distance values of boids (with entries in diagonal >= self.alignment_range)
         """
-        alignment = np.sum(
-            velocities * (distances < self.config.alignment_range), axis=1
-        )
-        return normalize(alignment)
+        mask = distances < self.config.alignment_range
+        alignment = np.sum(velocities * mask, axis=1)
+        return normalize(alignment), mask.any(axis=1)
 
     def _compute_cohesion(
         self, differences: np.ndarray, distances: np.ndarray
@@ -223,10 +223,9 @@ class Swarm:
             differences: pairwise difference vectors of boids
             distances: pairwise distance values of boids (with entries in diagonal >= self.cohesion_range)
         """
-        cohesion = np.sum(
-            differences / distances * (distances < self.config.cohesion_range), axis=1
-        )
-        return normalize(cohesion)
+        mask = distances < self.config.cohesion_range
+        cohesion = np.sum(differences / distances * mask, axis=1)
+        return normalize(cohesion), mask.any(axis=1)
 
     def _compute_obstacle_bounce(self) -> np.ndarray:
         """Compute the obstacle avoidance velocities.
@@ -287,18 +286,25 @@ class Swarm:
             (differences / distances * directions[:, None]).sum(axis=-1, keepdims=True)
         )
         distances += (angles > self.config.field_of_view / 2) * self._self_distance
-        separation = self._compute_separation(differences, distances)
-        alignment = self._compute_alignment(
+        separation, seperation_mask = self._compute_separation(differences, distances)
+        alignment, alignment_mask = self._compute_alignment(
             self._velocities[self.active_boids_mask], distances
         )
-        cohesion = self._compute_cohesion(differences, distances)
+        cohesion, cohesion_mask = self._compute_cohesion(differences, distances)
         target_direction = self._compute_target_direction(active_positions)
 
         # Compute desired velocities as weighted average.
         ws, wa, wc, wt = self.config.steering_weights
+        masked_weight_sum = (
+            ws * seperation_mask + wa * alignment_mask + wc * cohesion_mask + wt
+        )
+        masked_weight_sum[masked_weight_sum < 1e-6] = 1
         desired_velocities = (
-            ws * separation + wa * alignment + wc * cohesion + wt * target_direction
-        ) / (ws + wa + wc + wt)
+            ws * seperation_mask * separation
+            + wa * alignment_mask * alignment
+            + wc * cohesion_mask * cohesion
+            + wt * target_direction
+        ) / masked_weight_sum
 
         return desired_velocities
 
