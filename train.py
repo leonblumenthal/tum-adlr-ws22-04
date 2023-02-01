@@ -1,4 +1,4 @@
-from swarm.training.train import train
+from swarm.training.training import train
 import numpy as np
 import gymnasium as gym
 
@@ -6,7 +6,7 @@ from swarm.bas import wrappers
 from swarm.bas import Agent, BASEnv, Blueprint, RenderWrapper, Swarm, wrappers
 from swarm.bas.swarm import InstantSpawner, SwarmConfig
 from swarm.bas.wrappers.observation import components
-
+from pathlib import Path
 
 def f():
     blueprint = Blueprint(
@@ -78,4 +78,6 @@ def f():
 curriculum = [(100000, f)]
 
 if __name__ == "__main__":
-    train(curriculum, "test/abc",6)
+
+    experiment_path = Path(__file__).relative_to(Path.cwd() / "experiments").parent
+    train(curriculum, experiment_path, num_processes=16)
