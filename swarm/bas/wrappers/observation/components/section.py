@@ -40,7 +40,7 @@ class SectionObservationComponent(ObservationComponent):
         self, env: BASEnv, shared_computer: SharedComputer
     ) -> np.ndarray:
 
-        actual_max_range = self._max_range + self._subtract_radius * env.swarm.radius
+        actual_max_range = self._max_range + self._subtract_radius * env.swarm.config.radius
 
         differences = shared_computer.agent_to_boid_differences()
         distances = shared_computer.agent_to_boid_distances()
@@ -57,7 +57,7 @@ class SectionObservationComponent(ObservationComponent):
 
             if self._subtract_radius:
                 observation[section_index] *= (
-                    1 - env.swarm.radius / distances[boid_index]
+                    1 - env.swarm.config.radius / distances[boid_index]
                 )
 
             observation[section_index] /= self._max_range
@@ -95,7 +95,7 @@ class SectionVelocityObservationComponent(ObservationComponent):
 
         env_to_agent_rotation = shared_computer.env_to_agent_rotation()
 
-        actual_max_range = self._max_range + self._subtract_radius * env.swarm.radius
+        actual_max_range = self._max_range + self._subtract_radius * env.swarm.config.radius
 
         boid_indices = shared_computer.closest_boid_indices_per_section(
             self._num_sections, actual_max_range

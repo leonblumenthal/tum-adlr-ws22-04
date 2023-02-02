@@ -56,7 +56,7 @@ class ObservationContainerWrapperRenderer(Renderer):
                 canvas,
                 Colors.OBSERVATION,
                 self.agent.position + section_position * component._max_range,
-                self.swarm.radius / 2,
+                self.swarm.config.radius / 2,
             )
 
             angle = (
@@ -85,7 +85,7 @@ class ObservationContainerWrapperRenderer(Renderer):
 
         section_boid_indices = self._shared_computer.closest_boid_indices_per_section(
             component._num_sections,
-            component._max_range + component._subtract_radius * self.env.swarm.radius,
+            component._max_range + component._subtract_radius * self.env.swarm.config.radius,
         )
 
         for velocity, boid_index in zip(section_velocities, section_boid_indices):
@@ -155,12 +155,12 @@ class ObservationContainerWrapperRenderer(Renderer):
         boid_distances = self._shared_computer.agent_to_boid_distances()
         section_boid_indices = self._shared_computer.closest_boid_indices_per_section(
             component._num_sections,
-            component._max_range + component._subtract_radius * self.env.swarm.radius,
+            component._max_range + component._subtract_radius * self.env.swarm.config.radius,
         )
         section_distances = [
             (
                 boid_distances[boid_index]
-                - self.env.swarm.radius * component._subtract_radius
+                - self.env.swarm.config.radius * component._subtract_radius
                 if boid_index is not None
                 else component._max_range
             )

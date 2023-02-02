@@ -69,29 +69,6 @@ class Swarm:
     def velocities(self):
         return self._velocities[self.active_boids_mask]
 
-    @property
-    def radius(self):
-        return self.config.radius
-
-    @property
-    def target_radius(self):
-        return self.config.target_radius
-
-    @property
-    def target_position(self):
-        return self._target_position
-
-    @property
-    def max_velocity(self):
-        return self.config.max_velocity
-
-    @property
-    def max_acceleration(self):
-        return self.config.max_acceleration
-
-    @property
-    def num_boids(self):
-        return self.config.num_boids
 
     def reset(self, world_size: np.ndarray, np_random: np.random.Generator = np.random):
         """Store parameters from `BASEnv` and randomly (re)set boid positions and velocities."""
@@ -136,7 +113,7 @@ class Swarm:
         """
 
         # Boids are static.
-        if self.max_velocity is None:
+        if self.config.max_velocity is None:
             return
 
         if self.config.target_despawn:
@@ -148,16 +125,16 @@ class Swarm:
             return
 
         # Compute desired velocities and resulting accelerations.
-        desired_velocities = self._compute_desired_velocities() * self.max_velocity
+        desired_velocities = self._compute_desired_velocities() * self.config.max_velocity
         accelerations = desired_velocities - self._velocities[self.active_boids_mask]
         accelerations = limit(accelerations, self.config.max_acceleration)
 
         # Update velocities.
         self._velocities[self.active_boids_mask] += accelerations
-        self._velocities = limit(self._velocities, self.max_velocity)
+        self._velocities = limit(self._velocities, self.config.max_velocity)
 
         # Add velocities to avoid obstacles.
-        self._velocities += self._compute_obstacle_bounce() * self.max_velocity
+        self._velocities += self._compute_obstacle_bounce() * self.config.max_velocity
 
         # Update position.
         self._positions += self._velocities

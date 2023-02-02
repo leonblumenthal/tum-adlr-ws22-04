@@ -16,7 +16,7 @@ class NumNeighborsRewardWrapper(gym.RewardWrapper):
 
         self._max_range = max_range
 
-        self._reward_range = (0, env.swarm.num_boids)
+        self._reward_range = (0, env.swarm.config.num_boids)
 
     def reward(self, _):
         """Compute reward as number of boids within a specified range around the agent."""
