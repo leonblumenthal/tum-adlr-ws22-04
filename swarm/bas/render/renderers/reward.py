@@ -28,6 +28,6 @@ class NumNeighborsRewardWrapperRenderer(Renderer):
         distances = np.linalg.norm(self.swarm.positions - self.agent.position, axis=1)
         neighbors = self.swarm.positions[distances <= self._max_range]
         for position in neighbors:
-            self.circle(canvas, Colors.REWARD, position, self.swarm.radius)
+            self.circle(canvas, Colors.REWARD, position, self.swarm.config.radius)
 
         self.circle(canvas, Colors.REWARD, self.agent.position, self._max_range, 2)

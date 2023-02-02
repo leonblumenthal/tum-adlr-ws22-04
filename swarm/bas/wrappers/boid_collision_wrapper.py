@@ -44,7 +44,7 @@ class BoidCollisionWrapper(gym.Wrapper):
         distances = np.linalg.norm(differences, axis=1)
 
         # Check for collision.
-        if np.any(distances < self.swarm.radius + self.agent.radius):
+        if np.any(distances < self.swarm.config.radius + self.agent.radius):
             # Alter reward.
             if self._collision_reward is not None:
                 reward = self._collision_reward + self._add_reward * reward

@@ -24,8 +24,8 @@ class BASEnvRenderer(Renderer):
 
         swarm: Swarm = self.swarm
         for position, velocity in zip(swarm.positions, swarm.velocities):
-            self.circle(canvas, Colors.BOID, position, swarm.radius)
-            if swarm.max_velocity is not None:
+            self.circle(canvas, Colors.BOID, position, swarm.config.radius)
+            if swarm.config.max_velocity is not None:
                 self.line(
                     canvas, Colors.BOID_DIRECTION, position, position + velocity, 2
                 )
