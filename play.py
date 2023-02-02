@@ -26,9 +26,11 @@ swarm = Swarm(
         separation_range=10,
         cohesion_range=20,
         alignment_range=20,
-        steering_weights=(2, 1, 1, 1),
+        steering_weights=(3.1, 2, 1, 0),
         obstacle_margin=3,
-        target_position=agent.position,
+        # target_position=agent.position,
+        # field_of_view=np.pi * 1.5,
+        need_for_speed=0.5
     ),
     InstantSpawner(),
 )
