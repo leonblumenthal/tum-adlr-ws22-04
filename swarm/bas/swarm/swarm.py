@@ -98,6 +98,13 @@ class Swarm:
         else:
             self._target_position = None
 
+        self._obstacle_walls = [
+            (np.array([1, 0]), 0),
+            (np.array([-1, 0]), self.world_size[0]),
+            (np.array([0, 1]), 0),
+            (np.array([0, -1]), self.world_size[1]),
+        ]
+
     def step(self):
         """Update the position and velocity for each boid.
 
@@ -134,7 +141,9 @@ class Swarm:
         self._velocities = limit(self._velocities, self.config.max_velocity)
 
         # Add velocities to avoid obstacles.
-        self._velocities += self._compute_obstacle_bounce() * self.config.max_velocity
+        self._velocities[self.active_boids_mask] += (
+            self._compute_obstacle_bounce() * self.max_velocity
+        )
 
         # Update position.
         self._positions += self._velocities
@@ -195,7 +204,7 @@ class Swarm:
         """
         Compute normalized desired velocities as given by cohesion rule:
         Steer towards center of neighbors,  i.e. mean of difference vectors to neighbors.
-        
+
         Args:
             differences: pairwise difference vectors of boids
             distances: pairwise distance values of boids (with entries in diagonal >= self.cohesion_range)
@@ -213,35 +222,21 @@ class Swarm:
         When scaled to maximum velocity, this ensures the desired velocities are overpowered.
         """
 
-        # Distances to 0 edge `xp` and width/height edge `xn`.
-        xp = self._positions[:, [0]]
-        yp = self._positions[:, [1]]
-        xn = self.world_size[0] - xp
-        yn = self.world_size[1] - yp
+        bounce = np.zeros_like(self._positions[self.active_boids_mask])
+        for normal, offset in self._obstacle_walls:
+            force = (
+                -(
+                    self._positions[self.active_boids_mask] @ normal[:, None]
+                    + offset
+                    - self.radius
+                    - self.config.obstacle_margin
+                )
+                / self.config.obstacle_margin
+            )
+            force = np.clip(force, 0, None)
+            bounce += force**self.config.obstacle_margin_smoothness * normal
 
-        bounce = np.zeros_like(self._velocities)
-        # Positive x direction
-        dxp = 1 - (xp - self.config.radius) / (
-            self.config.obstacle_margin - self.config.radius
-        )
-        bounce += np.array([[1, 0]]) * (dxp > 0) * dxp
-        # Negative x direction
-        dxn = 1 - (xn - self.config.radius) / (
-            self.config.obstacle_margin - self.config.radius
-        )
-        bounce += np.array([[-1, 0]]) * (dxn > 0) * dxn
-        # Positive y direction
-        dyp = 1 - (yp - self.config.radius) / (
-            self.config.obstacle_margin - self.config.radius
-        )
-        bounce += np.array([[0, 1]]) * (dyp > 0) * dyp
-        # Negative y direction
-        dyn = 1 - (yn - self.config.radius) / (
-            self.config.obstacle_margin - self.config.radius
-        )
-        bounce += np.array([[0, -1]]) * (dyn > 0) * dyn
-
-        return limit(bounce, 1)
+        return bounce
 
     def _compute_desired_velocities(self) -> np.ndarray:
         """Compute the normalized desired velocities for active boids according to the four main rules and target direction."""
@@ -259,7 +254,13 @@ class Swarm:
         directions = normalize(active_velocities)
 
         angles = np.arccos(
-            np.clip((differences / distances * directions[:, None]).sum(axis=-1, keepdims=True), -1, 1)
+            np.clip(
+                (differences / distances * directions[:, None]).sum(
+                    axis=-1, keepdims=True
+                ),
+                -1,
+                1,
+            )
         )
         distances += (angles > self.config.field_of_view / 2) * self._self_distance
         separation, seperation_mask = self._compute_separation(differences, distances)

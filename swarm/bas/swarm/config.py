@@ -16,6 +16,7 @@ class SwarmConfig:
         separation_range, alignment_range, cohesion_range: Range in which boids are considered for the respective rule.
         steering_weights: Weighting between the rules separation, alignment, cohesion, targeting.
         obstacle_margin: Minimum distance at which boids are forced away from obstacles.
+        obstacle_margin_smoothness: Exponent for the obstacle margin force.
         target_position: Position of target. If None and targeting weight > 0, position will be randomly initialized. Defaults to None.
         target_radius: Radius of target. Defaults to 10.
         target_range: Range in which target is considered. If None, target is always considered for targeting. Defaults to None.
@@ -33,6 +34,7 @@ class SwarmConfig:
     cohesion_range: float
     steering_weights: tuple[float, float, float, float]
     obstacle_margin: float
+    obstacle_margin_smoothness: float = 1
     target_position: np.ndarray | None = None
     target_radius: float = 10
     target_range: float | None = None
