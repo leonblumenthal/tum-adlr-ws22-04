@@ -11,6 +11,7 @@ class ObservationContainerWrapper(gym.ObservationWrapper):
     def __init__(self, env: gym.Env, components: list[ObservationComponent]):
         super().__init__(env)
 
+        self._shared_computer = SharedComputer(env)
         self._components = components
 
         self._observation_space = gym.spaces.Tuple(
@@ -19,8 +20,8 @@ class ObservationContainerWrapper(gym.ObservationWrapper):
 
     def observation(self, _) -> list[np.ndarray]:
         """Return list of computed observations per component."""
-        # Shared computer is only valid for one step due to caching.
-        self._shared_computer = SharedComputer(self.env)
+        # cache in shared computer is only valid for one step and must be cleared manually.
+        self._shared_computer.clear_cache()
 
         return [
             component.compute_observation(self.env, self._shared_computer)
