@@ -306,6 +306,11 @@ class Swarm:
             + wt * target_direction
         ) / masked_weight_sum
 
+        if self.config.need_for_speed > 0:
+            desired_velocities += (
+                normalize(desired_velocities) - desired_velocities
+            ) * self.config.need_for_speed
+
         return desired_velocities
 
     def deactivate_target_boids(self):

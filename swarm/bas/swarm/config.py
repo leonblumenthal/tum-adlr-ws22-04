@@ -21,6 +21,7 @@ class SwarmConfig:
         target_range: Range in which target is considered. If None, target is always considered for targeting. Defaults to None.
         target_despawn: If true and a target_position exists, boids will despawn when reaching the target. Defaults to False.
         field_of_view: Field of view of a boid centered around its velocity direction.
+        need_for_speed: 🏎️‍💨
     """
 
     num_boids: int
@@ -37,3 +38,4 @@ class SwarmConfig:
     target_range: float | None = None
     target_despawn: bool = False
     field_of_view: float = 2 * np.pi
+    need_for_speed: float = 0
