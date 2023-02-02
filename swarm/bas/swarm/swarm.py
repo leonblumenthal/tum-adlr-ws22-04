@@ -142,7 +142,7 @@ class Swarm:
 
         # Add velocities to avoid obstacles.
         self._velocities[self.active_boids_mask] += (
-            self._compute_obstacle_bounce() * self.max_velocity
+            self._compute_obstacle_bounce() * self.config.max_velocity
         )
 
         # Update position.
@@ -228,7 +228,7 @@ class Swarm:
                 -(
                     self._positions[self.active_boids_mask] @ normal[:, None]
                     + offset
-                    - self.radius
+                    - self.config.radius
                     - self.config.obstacle_margin
                 )
                 / self.config.obstacle_margin
