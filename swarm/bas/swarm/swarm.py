@@ -218,7 +218,7 @@ class Swarm:
         """
         Compute normalized desired velocities as given by cohesion rule:
         Steer towards center of neighbors,  i.e. mean of difference vectors to neighbors.
-
+        
         Args:
             differences: pairwise difference vectors of boids
             distances: pairwise distance values of boids (with entries in diagonal >= self.cohesion_range)
@@ -279,11 +279,10 @@ class Swarm:
         # Ensure that the distance to itself is greater than all ranges so that they are not considered in the subsequent calculations.
         distances += np.eye(distances.shape[0])[..., None] * self._self_distance
 
-        directions = active_velocities / np.linalg.norm(
-            active_velocities, axis=-1, keepdims=True
-        )
+        directions = normalize(active_velocities)
+
         angles = np.arccos(
-            (differences / distances * directions[:, None]).sum(axis=-1, keepdims=True)
+            np.clip((differences / distances * directions[:, None]).sum(axis=-1, keepdims=True), -1, 1)
         )
         distances += (angles > self.config.field_of_view / 2) * self._self_distance
         separation, seperation_mask = self._compute_separation(differences, distances)
