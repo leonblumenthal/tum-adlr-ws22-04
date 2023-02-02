@@ -90,3 +90,12 @@ class SharedComputer:
             indices[section_index] = closes_boid_index
 
         return indices
+
+    def clear_cache(self):
+        self.env_to_agent_rotation.cache_clear()
+        self.agent_to_env_rotation.cache_clear()
+        self.agent_to_boid_differences.cache_clear()
+        self.agent_to_boid_distances.cache_clear()
+        self.agent_to_boid_angles.cache_clear()
+        self.boid_section_indices.cache_clear()
+        self.closest_boid_indices_per_section.cache_clear()
