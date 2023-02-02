@@ -1,5 +1,7 @@
 import numpy as np
-from abc import ABC, abstractmethod
+
+from swarm.bas.swarm.config import SwarmConfig
+from swarm.bas.swarm.spawner import Spawner
 
 
 def normalize(vectors: np.ndarray, eps: float = 1e-6) -> np.ndarray:
@@ -16,224 +18,6 @@ def limit(vectors: np.ndarray, max_norm: float) -> np.ndarray:
     # Clipping is performed on the lower bound.
     clipped_norms = np.linalg.norm(vectors, axis=-1, keepdims=True).clip(max_norm)
     return vectors * max_norm / clipped_norms
-
-
-class SwarmConfig:
-    def __init__(
-        self,
-        num_boids: int,
-        radius: float,
-        max_velocity: float | None,
-        max_acceleration: float,
-        separation_range: float,
-        alignment_range: float,
-        cohesion_range: float,
-        steering_weights: tuple[float, float, float, float],
-        obstacle_margin: float,
-        target_position: np.ndarray | None = None,
-        target_radius: float = 10,
-        target_range: float | None = None,
-        target_despawn: bool = False,
-    ):
-        """
-        Represents a specific configuration of swarm parameters.
-
-        Args:
-            num_boids: Number of boids.
-            radius: Radius of each boid in the world.
-            max_velocity: Maximum velocity for each boid. None for static boids.
-            max_acceleration: Maximum acceleration for each boid.
-            separation_range, alignment_range, cohesion_range: Range in which boids are considered for the respective rule.
-            steering_weights: Weighting between the rules separation, alignment, cohesion, targeting.
-            obstacle_margin: Minimum distance at which boids are forced away from obstacles.
-            target_position: Position of target. If None and targeting weight > 0, position will be randomly initialized. Defaults to None.
-            target_radius: Radius of target. Defaults to 10.
-            target_range: Range in which target is considered. If None, target is always considered for targeting. Defaults to None.
-            target_despawn: If true and a target_position exists, boids will despawn when reaching the target. Defaults to False.
-        """
-        self.num_boids = num_boids
-        self.radius = radius
-        self.max_velocity = max_velocity
-        self.max_acceleration = max_acceleration
-        self.separation_range = separation_range
-        self.alignment_range = alignment_range
-        self.cohesion_range = cohesion_range
-        self.target_range = target_range
-        self.steering_weights = steering_weights
-        self.obstacle_margin = obstacle_margin
-        self.target_position = target_position
-        self.target_radius = target_radius
-        self.target_despawn = target_despawn
-
-
-class Spawner(ABC):
-    def __init__(self):
-        super().__init__()
-
-    @abstractmethod
-    def reset(
-        self,
-        config: SwarmConfig,
-        world_size: np.ndarray,
-        np_random: np.random.Generator = np.random,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Returns the tuple (active_boids_mask, positions, velocities) describing the initial boid states following the spawn policy.
-
-        Args:
-            config: Configuration of swarm parameters.
-            world_size: World is given by [0, world_size[0]] x [0, world_size[1]]
-            np_random: number generator
-
-        """
-        pass
-
-    @abstractmethod
-    def step(
-        self,
-        active_boids_mask: np.ndarray,
-        positions: np.ndarray,
-        velocities: np.ndarray,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Updates the arrays from the tuple (active_boids_mask, positions, velocities) of the boid states in-place following the spawn policy.
-
-        Args:
-            active_boids_mask: current active_boids_mask.
-            positions: boid positions.
-            velocities: boid velocities.
-
-        """
-        pass
-
-
-class InstantSpawner(Spawner):
-    def __init__(
-        self,
-        spawn_positions: np.ndarray | None = None,
-        spawn_velocities: np.ndarray | None = None,
-    ):
-        """
-        Spawner that implements the following spawn policy: All boids are spawned immediately.
-        Args:
-            reset_positions: Specific spawn positions. If None, position will be randomly initialized.
-            reset_velocities: Specific spawn velocities. If None, velocities will be zero initialized.
-        """
-
-        super().__init__()
-        self.spawn_positions = spawn_positions
-        self.spawn_velocities = spawn_velocities
-
-    def reset(
-        self,
-        config: SwarmConfig,
-        world_size: np.ndarray,
-        np_random: np.random.Generator = np.random,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-
-        assert self.spawn_positions is None or self.spawn_positions.shape == (
-            config.num_boids,
-            2,
-        )
-        assert self.spawn_velocities is None or self.spawn_velocities.shape == (
-            config.num_boids,
-            2,
-        )
-
-        # all boids are immediately active
-        active_boids_mask = np.full(config.num_boids, True)
-
-        if self.spawn_positions is None:
-            # Sample boid positions randomly in world size.
-            positions = np_random.uniform(
-                low=config.radius,
-                high=world_size - config.obstacle_margin,
-                size=(config.num_boids, 2),
-            )
-        else:
-            # .copy() is important to prevent modifications of self.spawn_positions in-place.
-            positions = self.spawn_positions.copy()
-
-        velocities = np.zeros_like(positions, dtype=float)
-        if self.spawn_velocities is not None and config.max_velocity is not None:
-            velocities += self.spawn_velocities
-
-        return (active_boids_mask, positions, velocities)
-
-    def step(
-        self,
-        active_boids_mask: np.ndarray,
-        boid_positions: np.ndarray,
-        boid_velocities: np.ndarray,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        return
-
-
-class BernoulliSpawner(Spawner):
-    def __init__(
-        self,
-        spawn_probability: float,
-        spawn_radius: float,
-        spawn_position: np.ndarray | None = None,
-    ):
-        """
-        Spawner that implements the following spawn policy: At each time step, spawns a boid with probability p in spawn area.
-        Args:
-            spawn_probability: spawn probability p.
-            spawn_radius: Radius of circular spawn area.
-            spawn_position: Center position of spawn area. If None, position will be randomly initialized.
-
-        """
-        super().__init__()
-        self.spawn_probability = spawn_probability
-        self.spawn_radius = spawn_radius
-        self.spawn_position = spawn_position
-
-    def reset(
-        self,
-        config: SwarmConfig,
-        world_size: np.ndarray,
-        np_random: np.random.Generator = np.random,
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        self.config = config
-        self.world_size = world_size
-        self.np_random = np_random
-
-        if self.spawn_position is None:
-            # Sample spawn position randomly in world size.
-            self.spawn_position = np_random.uniform(
-                low=self.spawn_radius,
-                high=world_size - self.spawn_radius,
-                size=(1, 2),
-            )
-
-        active_boids_mask = np.full(config.num_boids, False)
-        positions = np.zeros((config.num_boids, 2), dtype=float)
-        velocities = np.zeros_like(positions, dtype=float)
-        return (active_boids_mask, positions, velocities)
-
-    def step(
-        self,
-        active_boids_mask: np.ndarray,
-        positions: np.ndarray,
-        velocities: np.ndarray,
-    ):
-        inactive_boids_indices = np.where(active_boids_mask == False)[0]
-
-        if len(inactive_boids_indices) > 0:
-            boid_index = inactive_boids_indices[0]
-            prob, angle, radius = self.np_random.random(3)
-            if prob < self.spawn_probability:
-                angle *= 2 * np.pi
-                radius *= self.spawn_radius
-                active_boids_mask[boid_index] = True
-
-                positions[boid_index] = [
-                    radius * np.cos(angle),
-                    radius * np.sin(angle),
-                ] + self.spawn_position
-
-                velocities[boid_index] = np.zeros((1, 2))
 
 
 class Swarm:
@@ -276,6 +60,7 @@ class Swarm:
             config.separation_range, config.alignment_range, config.cohesion_range
         )
 
+    # TODO: Remove and change access in renderers.
     @property
     def positions(self):
         return self._positions[self.active_boids_mask]
@@ -405,11 +190,12 @@ class Swarm:
             differences: pairwise difference vectors of boids
             distances: pairwise distance values of boids (with entries in diagonal >= self.separation_range)
         """
+        mask = distances < self.config.separation_range
         separation = -np.sum(
-            differences / distances**2 * (distances < self.config.separation_range),
+            differences / distances**2 * mask,
             axis=1,
         )
-        return normalize(separation)
+        return normalize(separation), mask.any(axis=1)
 
     def _compute_alignment(
         self, velocities: np.ndarray, distances: np.ndarray
@@ -422,10 +208,9 @@ class Swarm:
             velocities: velocities of boids
             distances: pairwise distance values of boids (with entries in diagonal >= self.alignment_range)
         """
-        alignment = np.sum(
-            velocities * (distances < self.config.alignment_range), axis=1
-        )
-        return normalize(alignment)
+        mask = distances < self.config.alignment_range
+        alignment = np.sum(velocities * mask, axis=1)
+        return normalize(alignment), mask.any(axis=1)
 
     def _compute_cohesion(
         self, differences: np.ndarray, distances: np.ndarray
@@ -438,10 +223,9 @@ class Swarm:
             differences: pairwise difference vectors of boids
             distances: pairwise distance values of boids (with entries in diagonal >= self.cohesion_range)
         """
-        cohesion = np.sum(
-            differences / distances * (distances < self.config.cohesion_range), axis=1
-        )
-        return normalize(cohesion)
+        mask = distances < self.config.cohesion_range
+        cohesion = np.sum(differences / distances * mask, axis=1)
+        return normalize(cohesion), mask.any(axis=1)
 
     def _compute_obstacle_bounce(self) -> np.ndarray:
         """Compute the obstacle avoidance velocities.
@@ -488,24 +272,44 @@ class Swarm:
         # Compute pairwise difference vectors and distances.
         # difference[i, j] <=> vector from i to j.
         active_positions = self._positions[self.active_boids_mask].astype(float)
-        differences = active_positions[None, :] - active_positions[:, None, :]
+        active_velocities = self._velocities[self.active_boids_mask].astype(float)
 
+        differences = active_positions[None, :] - active_positions[:, None, :]
         distances = np.linalg.norm(differences, axis=-1, keepdims=True)
         # Ensure that the distance to itself is greater than all ranges so that they are not considered in the subsequent calculations.
         distances += np.eye(distances.shape[0])[..., None] * self._self_distance
 
-        separation = self._compute_separation(differences, distances)
-        alignment = self._compute_alignment(
+        directions = active_velocities / np.linalg.norm(
+            active_velocities, axis=-1, keepdims=True
+        )
+        angles = np.arccos(
+            (differences / distances * directions[:, None]).sum(axis=-1, keepdims=True)
+        )
+        distances += (angles > self.config.field_of_view / 2) * self._self_distance
+        separation, seperation_mask = self._compute_separation(differences, distances)
+        alignment, alignment_mask = self._compute_alignment(
             self._velocities[self.active_boids_mask], distances
         )
-        cohesion = self._compute_cohesion(differences, distances)
+        cohesion, cohesion_mask = self._compute_cohesion(differences, distances)
         target_direction = self._compute_target_direction(active_positions)
 
         # Compute desired velocities as weighted average.
         ws, wa, wc, wt = self.config.steering_weights
+        masked_weight_sum = (
+            ws * seperation_mask + wa * alignment_mask + wc * cohesion_mask + wt
+        )
+        masked_weight_sum[masked_weight_sum < 1e-6] = 1
         desired_velocities = (
-            ws * separation + wa * alignment + wc * cohesion + wt * target_direction
-        ) / (ws + wa + wc + wt)
+            ws * seperation_mask * separation
+            + wa * alignment_mask * alignment
+            + wc * cohesion_mask * cohesion
+            + wt * target_direction
+        ) / masked_weight_sum
+
+        if self.config.need_for_speed > 0:
+            desired_velocities += (
+                normalize(desired_velocities) - desired_velocities
+            ) * self.config.need_for_speed
 
         return desired_velocities
 

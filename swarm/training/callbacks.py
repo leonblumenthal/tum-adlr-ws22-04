@@ -1,20 +1,20 @@
 import sys
-from typing import Callable
 
 import gymnasium as gym
 
 sys.modules["gym"] = gym
 
 import numpy as np
+import torch
 from stable_baselines3.common.callbacks import BaseCallback
-from stable_baselines3.common.logger import Image
-from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.evaluation import evaluate_policy
+from stable_baselines3.common.logger import Image, Video
 from stable_baselines3.common.utils import safe_mean
-from stable_baselines3.common.vec_env import SubprocVecEnv
 
 from swarm.analysis.reward import create_reward_heatmap
 from swarm.analysis.trajectories import draw_trajectories
 from swarm.bas import BASEnv
+from swarm.bas.render.utils import inject_render_wrapper
 
 
 class DrawTrajectoriesCallback(BaseCallback):
@@ -24,14 +24,15 @@ class DrawTrajectoriesCallback(BaseCallback):
     A `TrajectoryWrapper` and a `Monitor` with "agent_trajectory" in `info_keywords` are required.
     """
 
-    def __init__(self, env: BASEnv):
+    def __init__(self, env: BASEnv, window_scale: float = 5):
         """Initialize the callback with a renderable BAS environment."""
         super().__init__(verbose=0)
 
+        inject_render_wrapper(env, window_scale=window_scale)
         env.reset()
         env.agent.position = env.blueprint.world_size * 2
         self.background_image = env.render()
-        self.window_scale = env.window_scale
+        self.window_scale = window_scale
 
     def _on_rollout_end(self):
         """Draw the trajectories from the last 100 episodes and log them."""
@@ -109,10 +110,39 @@ class SuccessRateCallback(BaseCallback):
         return True
 
 
-def create_parallel_env(
-    create_env: Callable, num_processes: int, info_keywords: list[str] = ["is_success"]
-) -> SubprocVecEnv:
-    def f():
-        return Monitor(create_env(), info_keywords=info_keywords)
+# Copied from https://stable-baselines3.readthedocs.io/en/master/guide/tensorboard.html#logging-videos.
+class VideoRecorderCallback(BaseCallback):
+    def __init__(
+        self,
+        env: gym.Env,
+        every_n_step: int,
+        num_steps: int,
+        window_scale: float,
+    ):
+        super().__init__()
+        self._env = env
+        self._every_n_step = every_n_step
+        self._num_steps = num_steps
 
-    return SubprocVecEnv([f] * num_processes)
+        inject_render_wrapper(self._env, window_scale=window_scale)
+
+    def _on_step(self) -> bool:
+        if self.n_calls % (self._every_n_step // self.training_env.num_envs) == 0:
+            env = self._env
+            images = []
+            obs, _ = env.reset()
+            for _ in range(self._num_steps):
+                action, _ = self.model.predict(obs)
+                obs, _, terminated, truncated, _ = env.step(action)
+
+                images.append(env.render().transpose(2, 0, 1))
+
+                if terminated or truncated:
+                    obs, _ = env.reset()
+
+            self.logger.record(
+                "video",
+                Video(torch.ByteTensor(np.array(images)[None, :]), fps=30),
+                exclude=("stdout", "log", "json", "csv"),
+            )
+        return True
