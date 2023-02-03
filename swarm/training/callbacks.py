@@ -122,17 +122,20 @@ class VideoRecorderCallback(BaseCallback):
         every_n_step: int,
         num_steps: int,
         window_scale: float,
+        delete_existing_videos: bool
     ):
         super().__init__()
         self._env = env
         self._every_n_step = every_n_step
         self._num_steps = num_steps
+        self._delete_existing_videos = delete_existing_videos
 
         inject_render_wrapper(self._env, window_scale=window_scale)
 
     def _on_training_start(self) -> None:
         self._video_directory = Path(self.model.tensorboard_log).parent / "videos"
-        shutil.rmtree(self._video_directory, ignore_errors=True)
+        if self._delete_existing_videos:
+            shutil.rmtree(self._video_directory, ignore_errors=True)
         self._video_directory.mkdir(exist_ok=True, parents=True)
 
     def _on_step(self) -> bool:

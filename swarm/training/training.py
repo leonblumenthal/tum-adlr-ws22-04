@@ -65,6 +65,7 @@ def train(
                     video_every_n_steps,
                     video_num_steps,
                     video_window_scale,
+                    chapter == 0
                 )
             )
 
