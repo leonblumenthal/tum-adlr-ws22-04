@@ -36,10 +36,10 @@ def train(
     video_num_steps: int = 1000,
     video_window_scale: int = 3,
     runs_path: Path = Path("runs"),
+    initial_model_path: Path | None = None,
 ):
     model = None
     for chapter, (num_steps, create_env) in enumerate(curriculum):
-
         env = create_parallel_env(
             create_env,
             num_processes,
@@ -53,6 +53,9 @@ def train(
                 verbose=1,
                 tensorboard_log=runs_path / experiment_path / "tensorboard_train",
             )
+            if initial_model_path is not None:
+                print(f"Loading parameters from {initial_model_path}")
+                model.set_parameters(initial_model_path)
         else:
             model.set_env(env)
 
@@ -65,7 +68,7 @@ def train(
                     video_every_n_steps,
                     video_num_steps,
                     video_window_scale,
-                    chapter == 0
+                    chapter == 0,
                 )
             )
 
