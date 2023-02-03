@@ -4,6 +4,8 @@ import gymnasium as gym
 
 sys.modules["gym"] = gym
 
+import shutil
+import time
 from pathlib import Path
 
 import cv2
@@ -113,6 +115,7 @@ class SuccessRateCallback(BaseCallback):
 
 class VideoRecorderCallback(BaseCallback):
     """Callback to create videos of evaluation runs in the runs directory."""
+
     def __init__(
         self,
         env: gym.Env,
@@ -127,22 +130,24 @@ class VideoRecorderCallback(BaseCallback):
 
         inject_render_wrapper(self._env, window_scale=window_scale)
 
-    
     def _on_training_start(self) -> None:
         self._video_directory = Path(self.model.tensorboard_log).parent / "videos"
+        shutil.rmtree(self._video_directory, ignore_errors=True)
         self._video_directory.mkdir(exist_ok=True, parents=True)
-
 
     def _on_step(self) -> bool:
         if self.n_calls % (self._every_n_step // self.training_env.num_envs) == 0:
-            
+            start_time = time.perf_counter()
+
             env = self._env
             obs, _ = env.reset()
 
             sample_frame = env.render()
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            fourcc = cv2.VideoWriter_fourcc(*"mp4v")
             video_path = self._video_directory / f"{self.num_timesteps//1000:06d}k.mp4"
-            video_writer = cv2.VideoWriter(str(video_path), fourcc, 30, sample_frame.shape[:2])
+            video_writer = cv2.VideoWriter(
+                str(video_path), fourcc, 30, sample_frame.shape[:2]
+            )
 
             for _ in range(self._num_steps):
                 action, _ = self.model.predict(obs)
@@ -152,7 +157,12 @@ class VideoRecorderCallback(BaseCallback):
 
                 if terminated or truncated:
                     obs, _ = env.reset()
-            
+
             video_writer.release()
+
+            elapsed_time = time.perf_counter() - start_time
+            print(
+                f"Created video of {self._num_steps} steps on step {self.num_timesteps} in {elapsed_time:.01f} seconds"
+            )
 
         return True
