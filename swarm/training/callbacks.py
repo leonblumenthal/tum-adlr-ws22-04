@@ -153,7 +153,7 @@ class VideoRecorderCallback(BaseCallback):
             )
 
             for _ in range(self._num_steps):
-                action, _ = self.model.predict(obs)
+                action, _ = self.model.predict(obs, deterministic=True)
                 obs, _, terminated, truncated, _ = env.step(action)
 
                 video_writer.write(env.render())
