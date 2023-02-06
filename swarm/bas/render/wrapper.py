@@ -8,12 +8,11 @@ import pygame
 from swarm.bas.render.constants import Colors
 from swarm.bas.render.renderers.bas import BASEnvRenderer
 from swarm.bas.render.renderers.misc import AgentTrajectoryRenderer
+from swarm.bas.render.renderers.observation import \
+    ObservationContainerWrapperRenderer
 from swarm.bas.render.renderers.renderer import Renderer
 from swarm.bas.render.renderers.reward import (
-    NumNeighborsRewardWrapperRenderer,
-    TargetRewardWrapperRenderer,
-)
-from swarm.bas.render.renderers.observation import ObservationContainerWrapperRenderer
+    NumNeighborsRewardWrapperRenderer, TargetRewardWrapperRenderer)
 
 
 @dataclass
@@ -47,6 +46,7 @@ class RenderWrapper(gym.Wrapper):
             ObservationContainerWrapperRenderer,
         ],
         window_scale: float = 10,
+        return_numpy: bool = True,
     ):
         """Initialize the wrapper and setup all enabled and applicable renderers.
 
@@ -54,6 +54,7 @@ class RenderWrapper(gym.Wrapper):
             env: (Wrapped) BAS environment to render.
             enabled_renderers: Enabled renderers that are used if applicable.
             window_scale: Ratio between window size and world size. Defaults to 10.
+            return_numpy: Return numpy array instead of PyGame canvas. Defaults to True.
         """
         super().__init__(env)
 
@@ -64,6 +65,8 @@ class RenderWrapper(gym.Wrapper):
 
         self._metadata = env.metadata
         self._metadata["render_fps"] = 30
+
+        self._return_numpy = return_numpy
 
     def _get_applicable_renderers(
         self, enabled_renderers: list[Renderer]
@@ -123,5 +126,8 @@ class RenderWrapper(gym.Wrapper):
 
         # Ensure that lower left corner is (0,0).
         canvas = pygame.transform.flip(canvas, flip_x=False, flip_y=True)
+
+        if not self._return_numpy:
+            return canvas
 
         return np.transpose(np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2))
