@@ -18,16 +18,21 @@ class SectionObservationComponent(ObservationComponent):
     """
 
     def __init__(
-        self, num_sections: int, max_range: float, subtract_radius: bool = True
+        self,
+        num_sections: int,
+        max_range: float,
+        subtract_radius: bool = True,
+        offset_angle: float = 0,
     ):
         self._num_sections = num_sections
         self._max_range = max_range
         self._subtract_radius = subtract_radius
+        self._offset_angle = offset_angle
 
         # Default observation in the center of the sections at the maximum range.
         centered_angles = (
-            (np.arange(self._num_sections) + 0.5) * 2 * np.pi / self._num_sections
-        )
+            np.arange(self._num_sections) + 0.5
+        ) * 2 * np.pi / self._num_sections + self._offset_angle
         self._default_observation = np.array(
             [np.cos(centered_angles), np.sin(centered_angles)]
         ).T
@@ -40,14 +45,16 @@ class SectionObservationComponent(ObservationComponent):
         self, env: BASEnv, shared_computer: SharedComputer
     ) -> np.ndarray:
 
-        actual_max_range = self._max_range + self._subtract_radius * env.swarm.config.radius
+        actual_max_range = (
+            self._max_range + self._subtract_radius * env.swarm.config.radius
+        )
 
         differences = shared_computer.agent_to_boid_differences()
         distances = shared_computer.agent_to_boid_distances()
         boid_indices = shared_computer.closest_boid_indices_per_section(
-            self._num_sections, actual_max_range
-        )
+            self._num_sections, actual_max_range, offset_angle=-self._offset_angle
 
+        )
         observation = self._default_observation.copy()
         for section_index, boid_index in enumerate(boid_indices):
             if boid_index is None:
@@ -95,7 +102,9 @@ class SectionVelocityObservationComponent(ObservationComponent):
 
         env_to_agent_rotation = shared_computer.env_to_agent_rotation()
 
-        actual_max_range = self._max_range + self._subtract_radius * env.swarm.config.radius
+        actual_max_range = (
+            self._max_range + self._subtract_radius * env.swarm.config.radius
+        )
 
         boid_indices = shared_computer.closest_boid_indices_per_section(
             self._num_sections, actual_max_range
