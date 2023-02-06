@@ -17,6 +17,7 @@ from stable_baselines3 import PPO
 from swarm.bas import wrappers
 from swarm.bas.render.utils import inject_render_wrapper
 from swarm.bas.wrappers import utils
+from utils import parse_model_env_window_scale
 
 
 @dataclass
@@ -171,20 +172,6 @@ class Dragger:
 
 
 if __name__ == "__main__":
+    model, env, window_scale = parse_model_env_window_scale()
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("model_path", type=Path)
-    parser.add_argument("env_path", type=Path)
-    parser.add_argument("env_thing", type=str)
-    parser.add_argument("env_call", type=str)
-    parser.add_argument("--window_scale", type=float, default=5)
-    args = parser.parse_args()
-
-    module = importlib.import_module(
-        str(args.env_path).replace("/", ".").replace(".py", "")
-    )
-    env = eval(f"module.{args.env_thing}{args.env_call}")
-
-    model = PPO.load(args.model_path)
-
-    Dragger(env, args.window_scale).run(model)
+    Dragger(env, window_scale).run(model)
