@@ -44,17 +44,22 @@ class SharedComputer:
 
     @functools.cache
     def agent_to_boid_angles(
-        self, in_agent_coordinate_frame: bool = True
+        self, in_agent_coordinate_frame: bool = True, offset_angle: float = 0
     ) -> np.ndarray:
         differences = self.agent_to_boid_differences(in_agent_coordinate_frame)
-        angles = np.arctan2(differences[:, 1], differences[:, 0]) % (2 * np.pi)
+        angles = (np.arctan2(differences[:, 1], differences[:, 0]) + offset_angle) % (
+            2 * np.pi
+        )
         return angles
 
     @functools.cache
     def boid_section_indices(
-        self, num_sections: int, in_agent_coordinate_frame: bool = True
+        self,
+        num_sections: int,
+        in_agent_coordinate_frame: bool = True,
+        offset_angle: float = 0,
     ) -> np.ndarray:
-        angles = self.agent_to_boid_angles(in_agent_coordinate_frame)
+        angles = self.agent_to_boid_angles(in_agent_coordinate_frame, offset_angle)
         indices = np.floor_divide(angles, 2 * np.pi / num_sections).astype(int)
         return indices
 
@@ -64,10 +69,11 @@ class SharedComputer:
         num_sections: int,
         max_range: float,
         in_agent_coordinate_frame: bool = True,
+        offset_angle: float = 0,
     ) -> list[int | None]:
         distances = self.agent_to_boid_distances(in_agent_coordinate_frame)
         section_indices = self.boid_section_indices(
-            num_sections, in_agent_coordinate_frame
+            num_sections, in_agent_coordinate_frame, offset_angle
         )
 
         indices = [None] * num_sections

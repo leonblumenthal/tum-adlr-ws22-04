@@ -13,7 +13,7 @@ class RandomTargetWrapper(gym.Wrapper):
         """
         super().__init__(env)
 
-        self._target = np.array([0, 0])
+        self._target = np.zeros(2, float)
 
     # TODO: This might need to be moved inside the step method and check for truncated or terminated.
     def reset(self, **kwargs):

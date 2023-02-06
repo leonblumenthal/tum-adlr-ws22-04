@@ -60,7 +60,7 @@ class ObservationContainerWrapperRenderer(Renderer):
             )
 
             angle = (
-                section_index * 2 * np.pi / component._num_sections + self.agent.angle
+                section_index * 2 * np.pi / component._num_sections + self.agent.angle + component._offset_angle
             )
 
             self.line(
