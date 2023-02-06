@@ -9,12 +9,16 @@ class Agent:
     It works similar to a gymnasium environment,
     i.e. some attributes are not "declared" until the `reset` method.
 
-    It accepts a velocity with norm<=1 as action,
+    It accepts a normalized direction as action,
     which is scaled to `max_velocity` for the next velocity.
 
     In the `reset` method, the agent either spawns randomly in the world
     or at `reset_position` if specified.
     """
+
+    ActionType = np.ndarray
+
+    action_space = spaces.Box(low=-1, high=1, shape=(1,), dtype=float)
 
     def __init__(
         self,
@@ -38,8 +42,8 @@ class Agent:
         self.max_acceleration = max_acceleration
         self.reset_position = reset_position
 
-        # Initialized here to allow referencing before reset is called
-        self.position = np.zeros(2, dtype=float)
+        #initialized here to allow referencing before reset is called
+        self.position = np.zeros(2,dtype=float)
 
     def reset(self, world_size: np.ndarray, np_random: np.random.Generator = np.random):
         """Store parameters from `BASEnv` and
@@ -58,15 +62,20 @@ class Agent:
                 + self.radius
             )
         else:
+            # .copy() is important because self.position is modified in-place in self.step().
             self.position[:] = self.reset_position.astype(float).copy()
 
         self.velocity = np.zeros_like(self.position)
-        self.angle = self.np_random.random() * 2 * np.pi
+        self.angle = np.random.rand() * 2 * np.pi
 
-    def step(self, desired_velocity: np.ndarray):
+    def step(self, desired_velocity: ActionType):
         """Update the position with the next velocity based desired velocity"""
 
-        acceleration = desired_velocity * self.max_velocity - self.velocity
+        angle = (desired_velocity * np.pi).item() + self.angle
+
+        desired_velocity = np.array([np.cos(angle), np.sin(angle)]) * self.max_velocity
+
+        acceleration = desired_velocity - self.velocity
         clipped_acc_norm = np.linalg.norm(acceleration).clip(self.max_acceleration)
         acceleration = acceleration * self.max_acceleration / clipped_acc_norm
 
