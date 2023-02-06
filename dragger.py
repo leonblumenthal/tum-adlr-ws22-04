@@ -79,10 +79,15 @@ class Dragger:
         clock = pygame.time.Clock()
 
         env_action = None
-        while True:
+
+        is_running = True
+        while is_running:
             for event in pygame.event.get():
-                if event.type in (pygame.QUIT, pygame.K_q):
-                    break
+                if event.type == pygame.KEYDOWN and event.key in (
+                    pygame.K_q,
+                    pygame.K_ESCAPE,
+                ):
+                    is_running = False
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     for dragable in self.dragables:
