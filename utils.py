@@ -8,7 +8,6 @@ import gymnasium as gym
 sys.modules["gym"] = gym
 
 
-import numpy as np
 from stable_baselines3 import PPO
 
 
