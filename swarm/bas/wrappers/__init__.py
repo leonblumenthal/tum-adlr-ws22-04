@@ -12,3 +12,4 @@ from .observation.flatten_wrapper import FlattenObservationWrapper
 from .action.angular import AngularActionWrapper
 from .action.angular_and_velocity import AngularAndVelocityActionWrapper
 from .action.desired_velocity import DesiredVelocityActionWrapper
+from .spawn_fix import SpawnFixWrapper
