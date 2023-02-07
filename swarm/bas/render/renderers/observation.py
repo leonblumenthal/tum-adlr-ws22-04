@@ -22,6 +22,7 @@ class ObservationContainerWrapperRenderer(Renderer):
             components.SectionDistanceObservationComponent: self.render_section_distance_observation_component,
             components.SectionVelocityDistanceObservationComponent: self.render_section_velocity_distance_observation_component,
             components.TargetDirectionObservationComponent: self.render_target_direction_observation_component,
+            components.TargetDirectionDistanceObservationComponent: self.render_target_direction_observation_component,
             components.AgentVelocityObservationComponent: self.render_agent_velocity_observation_component,
         }
 
