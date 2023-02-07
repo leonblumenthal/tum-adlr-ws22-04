@@ -48,7 +48,7 @@ def create_video_response(video_path: Path, fps: int = 300):
 
 @app.route("/")
 def index():
-    return redirect(f"http://127.0.0.1:8008/{runs_directory}")
+    return redirect(f"http://127.0.0.1:{args.port}/{runs_directory}")
 
 
 def file_ending(path: Path):
