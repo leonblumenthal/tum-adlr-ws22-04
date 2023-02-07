@@ -1,4 +1,5 @@
 from .component import ObservationComponent
 from .section import SectionObservationComponent, SectionDistanceObservationComponent, SectionVelocityObservationComponent, SectionVelocityDistanceObservationComponent
 from .target_direction import TargetDirectionObservationComponent
+from .target_direction_distance import TargetDirectionDistanceObservationComponent
 from .agent_velocity import AgentVelocityObservationComponent
