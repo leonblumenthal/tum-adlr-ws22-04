@@ -3,6 +3,7 @@ import importlib
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import gymnasium as gym
 import numpy as np
@@ -47,8 +48,11 @@ class Dragger:
         self.selection_mode = None
 
     def _init_env(self, window_scale: float):
+        def _cache_action(action: np.ndarray):
+            self._env_action = action
+
+        self.env.agent.step = _cache_action
         self.env.swarm.step = lambda *_: None
-        self.env.agent.step = lambda *_: None
         inject_render_wrapper(env, window_scale=window_scale, return_numpy=False)
         self.env.reset()
 
@@ -135,15 +139,11 @@ class Dragger:
 
             if self.selected is not None:
                 observation, reward, terminated, truncated, info = self.env.step(
-                    np.array([0, 0])
+                    np.zeros(self.env.action_space.shape)
                 )
                 agent_action = model.predict(observation, deterministic=True)[0]
-                env_action = agent_action @ np.array(
-                    [
-                        [np.cos(self.env.agent.angle), np.sin(self.env.agent.angle)],
-                        [-np.sin(self.env.agent.angle), np.cos(self.env.agent.angle)],
-                    ]
-                )
+                self.env.step(agent_action)
+                env_action = self._env_action
 
                 print(f"{observation=}")
                 print(f"{reward=}")
