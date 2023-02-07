@@ -2,7 +2,7 @@ import gymnasium as gym
 import numpy as np
 
 
-class BananaActionWrapper(gym.ActionWrapper):
+class DesiredVelocityActionWrapper(gym.ActionWrapper):
     """Rotate a 2D direction from the agent frame into the env frame and limit the norm to 1."""
 
     def __init__(self, env: gym.Env):
