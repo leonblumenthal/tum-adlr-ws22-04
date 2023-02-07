@@ -3,6 +3,8 @@ import numpy as np
 
 
 class AngularActionWrapper(gym.ActionWrapper):
+    """Create a 2D desired direction based on a steering angle relative the the agent direction"""
+
     def __init__(self, env: gym.Env, max_steering_angle: float = np.pi):
         super().__init__(env)
 
@@ -11,8 +13,7 @@ class AngularActionWrapper(gym.ActionWrapper):
         self.action_space = gym.spaces.Box(low=-1, high=1, shape=(1,), dtype=float)
 
     def action(self, action: np.ndarray) -> np.ndarray:
-        # angle = (action * self._max_steering_angle).item() + self.agent.angle
-        # direction = np.array([np.cos(angle), np.sin(angle)])
+        angle = (action * self._max_steering_angle).item() + self.agent.angle
+        direction = np.array([np.cos(angle), np.sin(angle)])
 
-        # return direction
-        return action
+        return direction
