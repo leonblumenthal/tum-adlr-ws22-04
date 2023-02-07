@@ -56,7 +56,7 @@ def create_env():
             components.SectionVelocityDistanceObservationComponent(
                 8, 20, relative_to_agent=False
             ),
-            components.TargetDirectionObservationComponent(target),
+            components.TargetDirectionDistanceObservationComponent(target, 200, 0.1),
             components.AgentVelocityObservationComponent(),
         ],
     )
@@ -65,7 +65,7 @@ def create_env():
 
     env = wrappers.FlattenObservationWrapper(env)
 
-    env = wrappers.RelativeActionWrapper(env)
+    env = wrappers.DesiredVelocityActionWrapper(env)
 
     env = wrappers.TrajectoryWrapper(env)
 
