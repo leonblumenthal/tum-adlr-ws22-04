@@ -10,7 +10,7 @@ class AngularAndVelocityActionWrapper(gym.ActionWrapper):
 
         self._max_steering_angle = max_steering_angle
 
-        self.action_space = gym.spaces.Box(low=(-1, 0), high=(1, 1), shape=(2,))
+        self.action_space = gym.spaces.Box(low=np.array((-1, 0)), high=np.array((1, 1)), shape=(2,))
 
     def action(self, action: np.ndarray) -> np.ndarray:
         steering, speed = action
