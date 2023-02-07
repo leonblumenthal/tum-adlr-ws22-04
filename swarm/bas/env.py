@@ -1,7 +1,7 @@
 from typing import Any
 
 import gymnasium as gym
-from gymnasium import spaces
+import numpy as np
 
 from swarm.bas.agent import Agent
 from swarm.bas.blueprint import Blueprint
@@ -11,21 +11,12 @@ from swarm.bas.swarm import Swarm
 class BASEnv(gym.Env):
     """Environment consisting of blueprint, agent, and swarm (BAS).
 
-    This environment does not really implement observations, rewards, and rendering.
+    This environment does not really implement observations, rewards, actions, and rendering.
     Custom wrappers are designed to fulfill these parts in a modular way.
-
-    The action space is clearly specified by the agent's capability
-    to move based on a direction vector.
     """
 
-    # Next direction for the agent.
-    ActionType = Agent.ActionType
     # Additional Information.
     InfoType = dict[str]
-
-    # Action corresponds to next velocity of the agent.
-    # This may be scaled by the agent itself.
-    action_space = Agent.action_space
 
     # No render mode is defined because that is handled by a custom wrapper.
 
@@ -59,7 +50,7 @@ class BASEnv(gym.Env):
 
         return observation, info
 
-    def step(self, action: ActionType) -> tuple[Any, float, bool, bool, dict]:
+    def step(self, action: np.ndarray) -> tuple[Any, float, bool, bool, dict]:
         """Performs step for the agent and swarm.
 
         The returned observation and reward should be replaced by wrappers.
