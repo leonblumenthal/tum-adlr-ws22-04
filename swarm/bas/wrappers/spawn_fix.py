@@ -16,6 +16,5 @@ class SpawnFixWrapper(gym.Wrapper):
                 np.zeros(self.env.action_space.shape)
             )
             done = terminated or truncated
-            print("Reset try")
 
         return observation, info
