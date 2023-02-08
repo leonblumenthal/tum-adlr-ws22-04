@@ -53,24 +53,24 @@ if __name__ == "__main__":
     train(
         section_curriculum,
         Path(__file__).relative_to(Path.cwd() / "experiments").parent / "section",
-        num_processes=6,
+        num_processes=8,
         video_every_n_steps=500000,
     )
     train(
         section_and_velocity_curriculum,
         Path(__file__).relative_to(Path.cwd() / "experiments").parent / "section_and_velocity",
-        num_processes=6,
+        num_processes=8,
         video_every_n_steps=500000,
     )
     train(
         section_distance_curriculum,
         Path(__file__).relative_to(Path.cwd() / "experiments").parent / "section_distance",
-        num_processes=6,
+        num_processes=8,
         video_every_n_steps=500000,
     )
     train(
         section_distance_and_section_velocity_distance_curriculum,
         Path(__file__).relative_to(Path.cwd() / "experiments").parent / "section_distance_and_section_velocity_distance",
-        num_processes=6,
+        num_processes=8,
         video_every_n_steps=500000,
     )
