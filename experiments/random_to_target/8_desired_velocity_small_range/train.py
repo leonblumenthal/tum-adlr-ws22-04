@@ -13,7 +13,7 @@ from swarm.training.training import train
 
 section_curriculum = create_curriculum(
     [
-        components.SectionObservationComponent(num_sections=8, max_range=20),
+        components.SectionObservationComponent(num_sections=8, max_range=10),
         components.AgentVelocityObservationComponent(),
     ],
     wrappers.DesiredVelocityActionWrapper,
@@ -21,8 +21,8 @@ section_curriculum = create_curriculum(
 )
 section_and_velocity_curriculum = create_curriculum(
     [
-        components.SectionObservationComponent(num_sections=8, max_range=20),
-        components.SectionVelocityObservationComponent(num_sections=8, max_range=20),
+        components.SectionObservationComponent(num_sections=8, max_range=10),
+        components.SectionVelocityObservationComponent(num_sections=8, max_range=10),
         components.AgentVelocityObservationComponent(),
     ],
     wrappers.DesiredVelocityActionWrapper,
@@ -30,7 +30,7 @@ section_and_velocity_curriculum = create_curriculum(
 )
 section_distance_curriculum = create_curriculum(
     [
-        components.SectionDistanceObservationComponent(num_sections=8, max_range=20),
+        components.SectionDistanceObservationComponent(num_sections=8, max_range=10),
         components.AgentVelocityObservationComponent(),
     ],
     wrappers.DesiredVelocityActionWrapper,
@@ -38,9 +38,9 @@ section_distance_curriculum = create_curriculum(
 )
 section_distance_and_section_velocity_distance_curriculum = create_curriculum(
     [
-        components.SectionDistanceObservationComponent(num_sections=8, max_range=20),
+        components.SectionDistanceObservationComponent(num_sections=8, max_range=10),
         components.SectionVelocityDistanceObservationComponent(
-            num_sections=8, max_range=20
+            num_sections=8, max_range=10
         ),
         components.AgentVelocityObservationComponent(),
     ],
@@ -53,24 +53,24 @@ if __name__ == "__main__":
     train(
         section_curriculum,
         Path(__file__).relative_to(Path.cwd() / "experiments").parent / "section",
-        num_processes=8,
+        num_processes=6,
         video_every_n_steps=500000,
     )
     train(
         section_and_velocity_curriculum,
         Path(__file__).relative_to(Path.cwd() / "experiments").parent / "section_and_velocity",
-        num_processes=8,
+        num_processes=6,
         video_every_n_steps=500000,
     )
     train(
         section_distance_curriculum,
         Path(__file__).relative_to(Path.cwd() / "experiments").parent / "section_distance",
-        num_processes=8,
+        num_processes=6,
         video_every_n_steps=500000,
     )
     train(
         section_distance_and_section_velocity_distance_curriculum,
         Path(__file__).relative_to(Path.cwd() / "experiments").parent / "section_distance_and_section_velocity_distance",
-        num_processes=8,
+        num_processes=6,
         video_every_n_steps=500000,
     )
