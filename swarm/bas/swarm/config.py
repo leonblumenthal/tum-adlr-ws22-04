@@ -41,3 +41,9 @@ class SwarmConfig:
     target_despawn: bool = False
     field_of_view: float = 2 * np.pi
     need_for_speed: float = 0
+
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
+    
+    def __getitem__(self, key):
+        return getattr(self, key)
