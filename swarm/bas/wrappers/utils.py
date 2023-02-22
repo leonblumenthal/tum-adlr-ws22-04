@@ -19,12 +19,16 @@ def replace_wrapper(
     wrapper_type: Type[gym.Wrapper],
     new_wrapper_type: Type[gym.Wrapper],
     new_wrapper_kwargs: dict[str, Any] = {},
-):
-    last = None
+) -> gym.Wrapper:
+    last_seen = None
+    first = env
     while env is not None:
         if isinstance(env, wrapper_type):
             new_wrapper = new_wrapper_type(env.env, **new_wrapper_kwargs)
-            last.env = new_wrapper
-            return
-        last = env
+            if last_seen is None:
+                return new_wrapper
+            last_seen.env = new_wrapper
+            return first
+        last_seen = env
         env = env.env
+    return first

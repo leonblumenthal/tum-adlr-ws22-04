@@ -25,7 +25,7 @@ if __name__ == "__main__":
     env = eval(f"module.{args.env_thing}{args.env_call}")
     inject_render_wrapper(env, window_scale=args.window_scale)
 
-    utils.replace_wrapper(
+    env = utils.replace_wrapper(
         env,
         gym.ActionWrapper,
         wrappers.DesiredVelocityActionWrapper,
