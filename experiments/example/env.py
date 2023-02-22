@@ -7,11 +7,11 @@ from swarm.bas.wrappers.observation import components
 
 
 def create_env(
-        num_sections=8,
-        distance_reward_transform=lambda d: -d,
-        collision_termination=False,
-        collision_reward=0,
-        trajectory=False,
+    num_sections=8,
+    distance_reward_transform=lambda d: -d,
+    collision_termination=False,
+    collision_reward=0,
+    trajectory=True,
 ):
     world_size = np.array([200, 200])
 
@@ -61,19 +61,20 @@ def create_env(
         [
             components.SectionDistanceObservationComponent(num_sections, 20),
             components.SectionVelocityDistanceObservationComponent(num_sections, 20),
-            components.TargetDirectionDistanceObservationComponent(target, world_size[0]),
+            components.TargetDirectionDistanceObservationComponent(
+                target, world_size[0]
+            ),
             components.AgentVelocityObservationComponent(),
         ],
     )
 
     env = gym.wrappers.TimeLimit(env, 1000)
-    
+
     env = wrappers.FlattenObservationWrapper(env)
 
     env = wrappers.AngularAndVelocityActionWrapper(env)
 
     if trajectory:
         env = wrappers.TrajectoryWrapper(env)
-
 
     return env

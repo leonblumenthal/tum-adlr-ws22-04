@@ -13,4 +13,4 @@ curriculum = [(200000, create_env)]
 if __name__ == "__main__":
 
     experiment_path = Path(__file__).relative_to(Path.cwd() / "experiments").parent
-    train(curriculum, experiment_path, num_processes=6, video_every_n_steps=50000)
+    train(curriculum, experiment_path, num_processes=12, video_every_n_steps=50000)
