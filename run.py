@@ -23,11 +23,6 @@ def run_ppo(model: PPO, env: gym.Env, window_scale: float):
 
         env.render()
 
-        print(f"{step=}")
-        print(f"{agent_action=}")
-        print(f"{observation=}")
-        print(f"{reward}\n")
-
         if terminated or truncated:
             observation, info = env.reset()
             step = 0

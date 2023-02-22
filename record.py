@@ -40,11 +40,11 @@ def record(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("model_path", type=Path)
-    parser.add_argument("env_path", type=Path)
-    parser.add_argument("env_function", type=str)
-    parser.add_argument("env_call_with_args", type=str)
-    parser.add_argument("video_path", type=Path)
-    parser.add_argument("num_episodes", type=int)
+    parser.add_argument("env_path", type=Path, help="Path of the file in which the env_function is defined.")
+    parser.add_argument("env_function", type=str, help="Name of the env_function.")
+    parser.add_argument("env_call_with_args", type=str, help='env_function call (with arguments if necessary) in quotes, e.g. "()".')
+    parser.add_argument("video_path", type=Path, help="Destination path where to store video.")
+    parser.add_argument("num_episodes", type=int, help="Video length in episodes.",default=1)
     parser.add_argument("--window_scale", type=float, default=5)
     args = parser.parse_args()
 

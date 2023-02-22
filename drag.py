@@ -53,7 +53,7 @@ class Dragger:
 
         self.env.agent.step = _cache_action
         self.env.swarm.step = lambda *_: None
-        env = inject_render_wrapper(env, window_scale=window_scale, return_numpy=False)
+        self.env = inject_render_wrapper(env, window_scale=window_scale, return_numpy=False)
         self.env.reset()
 
     def _init_dragables(self):
