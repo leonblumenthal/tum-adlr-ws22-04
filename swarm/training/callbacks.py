@@ -31,7 +31,7 @@ class DrawTrajectoriesCallback(BaseCallback):
         """Initialize the callback with a renderable BAS environment."""
         super().__init__(verbose=0)
 
-        inject_render_wrapper(env, window_scale=window_scale)
+        env = inject_render_wrapper(env, window_scale=window_scale)
         env.reset()
         env.agent.position = env.blueprint.world_size * 2
         self.background_image = env.render()
@@ -130,7 +130,7 @@ class VideoRecorderCallback(BaseCallback):
         self._num_steps = num_steps
         self._delete_existing_videos = delete_existing_videos
 
-        inject_render_wrapper(self._env, window_scale=window_scale)
+        env = inject_render_wrapper(self._env, window_scale=window_scale)
 
     def _on_training_start(self) -> None:
         self._video_directory = Path(self.model.tensorboard_log).parent / "videos"

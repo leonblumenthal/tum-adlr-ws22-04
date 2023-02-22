@@ -11,7 +11,7 @@ from utils import parse_model_env_window_scale
 
 def run_ppo(model: PPO, env: gym.Env, window_scale: float):
 
-    inject_render_wrapper(env, window_scale=window_scale)
+    env = inject_render_wrapper(env, window_scale=window_scale)
     env = gym.wrappers.HumanRendering(env)
 
     observation, info = env.reset()

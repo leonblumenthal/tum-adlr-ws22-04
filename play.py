@@ -23,7 +23,7 @@ if __name__ == "__main__":
         str(args.env_path).replace("/", ".").replace(".py", "")
     )
     env = eval(f"module.{args.env_thing}{args.env_call}")
-    inject_render_wrapper(env, window_scale=args.window_scale)
+    env = inject_render_wrapper(env, window_scale=args.window_scale)
 
     env = utils.replace_wrapper(
         env,
