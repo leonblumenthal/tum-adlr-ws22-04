@@ -11,6 +11,7 @@ class TrajectoryWrapper(gym.Wrapper):
             env: (Wrapped) BAS environment.
         """
         super().__init__(env)
+        self._trajectory = []
 
     def reset(self, **kwargs):
         """Store first position of the agent's trajectory."""
