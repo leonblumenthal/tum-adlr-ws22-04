@@ -1,8 +1,6 @@
 gymnasium==0.27.0
 # Stable Baselines 3 with gymnasoum support
 git+https://github.com/carlosluis/stable-baselines3@fix_tests#egg=stable_baselines3[extra,tests,docs]
-# gymnasium[box2d]
-# gymnasium[other]
 black
 plotly
 nbformat
