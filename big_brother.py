@@ -8,7 +8,7 @@ import cv2
 from flask import Flask, Response, redirect
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--runs_directory", type=Path, default="runs")
+parser.add_argument("--runs_directory", type=Path, default="runs", help="Directory of training logs which includes the training videos.")
 parser.add_argument("--port", type=int, default=8008)
 args = parser.parse_args()
 runs_directory = args.runs_directory
