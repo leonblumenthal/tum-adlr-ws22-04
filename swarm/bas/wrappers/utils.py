@@ -25,6 +25,7 @@ def replace_wrapper(
     new_wrapper_type: Type[gym.Wrapper],
     new_wrapper_kwargs: dict[str, Any] = {},
 ) -> gym.Wrapper:
+    """Replace first existence of specified wrapper type with a new wrapper. If not present the replacement is ignored."""
     last_seen = None
     first = env
     while env is not None:
@@ -35,5 +36,5 @@ def replace_wrapper(
             last_seen.env = new_wrapper
             return first
         last_seen = env
-        env = env.env
+        env = getattr(env, "env", None)
     return first
