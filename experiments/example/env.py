@@ -11,6 +11,7 @@ def create_env(
         distance_reward_transform=lambda d: -d,
         collision_termination=False,
         collision_reward=0,
+        trajectory=False,
 ):
     world_size = np.array([200, 200])
 
@@ -66,11 +67,13 @@ def create_env(
     )
 
     env = gym.wrappers.TimeLimit(env, 1000)
-
+    
     env = wrappers.FlattenObservationWrapper(env)
 
     env = wrappers.AngularAndVelocityActionWrapper(env)
 
-    env = wrappers.TrajectoryWrapper(env)
+    if trajectory:
+        env = wrappers.TrajectoryWrapper(env)
+
 
     return env
