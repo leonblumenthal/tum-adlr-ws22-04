@@ -1,6 +1,8 @@
 # Project specific
 actor_critic
 runs/
+videos/
+experiments/images/
 
 # VS Code
 .vscode
