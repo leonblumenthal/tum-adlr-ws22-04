@@ -1,6 +1,9 @@
 import sys
 
 import gymnasium as gym
+from swarm.bas.wrappers import TrajectoryWrapper
+
+from swarm.bas.wrappers.utils import has_wrapper
 
 sys.modules["gym"] = gym
 
@@ -30,6 +33,10 @@ class DrawTrajectoriesCallback(BaseCallback):
     def __init__(self, env: BASEnv, window_scale: float = 5):
         """Initialize the callback with a renderable BAS environment."""
         super().__init__(verbose=0)
+
+        assert has_wrapper(
+            env, TrajectoryWrapper
+        ), "Require TrajectoryWrapper to draw trajectories"
 
         env = inject_render_wrapper(env, window_scale=window_scale)
         env.reset()
@@ -122,15 +129,14 @@ class VideoRecorderCallback(BaseCallback):
         every_n_step: int,
         num_steps: int,
         window_scale: float,
-        delete_existing_videos: bool
+        delete_existing_videos: bool,
     ):
         super().__init__()
-        self._env = env
+        self._env = inject_render_wrapper(env, window_scale=window_scale)
         self._every_n_step = every_n_step
         self._num_steps = num_steps
         self._delete_existing_videos = delete_existing_videos
 
-        env = inject_render_wrapper(self._env, window_scale=window_scale)
 
     def _on_training_start(self) -> None:
         self._video_directory = Path(self.model.tensorboard_log).parent / "videos"

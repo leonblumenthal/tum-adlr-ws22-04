@@ -10,8 +10,13 @@ def get_wrapper(
     while env is not None:
         if isinstance(env, wrapper_type):
             return env
-        env = getattr(env, "env")
+        env = getattr(env, "env", None)
     return None
+
+
+def has_wrapper(env: gym.Wrapper, wrapper_type: Type[gym.Wrapper]) -> bool:
+    """Check whether wrapper of specified type is in the env/wrapper chain."""
+    return get_wrapper(env, wrapper_type) is not None
 
 
 def replace_wrapper(
