@@ -4,7 +4,7 @@ import pygame
 from swarm.bas import BASEnv
 from swarm.bas.render.constants import Colors
 from swarm.bas.render.renderers.renderer import Renderer
-from swarm.bas.wrappers.trajectory_wrapper import TrajectoryWrapper
+from swarm.bas.wrappers import TrajectoryWrapper
 
 
 class AgentTrajectoryRenderer(Renderer):
