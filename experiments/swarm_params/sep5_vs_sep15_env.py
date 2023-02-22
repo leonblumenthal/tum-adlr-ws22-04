@@ -5,7 +5,7 @@ from swarm.bas import Agent, BASEnv, Blueprint, Swarm, wrappers
 from swarm.bas.swarm import InstantSpawner, SwarmConfig
 from swarm.bas.wrappers.observation import components
 
-# environment for example scenario in which the difference in strategy becomes visible for an agent trained in a swarm with less (separation range 5) vs. more (separation range 15) separation. Both agent perform differently in this same scenario.
+# Environment provides an example scenario in which the difference in strategy becomes visible for an agent trained in a swarm with less (separation range 5) vs. more (separation range 15) separation. The two agents perform differently in this same scenario.
 def create_env(
     target_radius=3,
     target_reward=3,
