@@ -6,9 +6,16 @@ from swarm.bas.swarm import InstantSpawner, SwarmConfig
 from swarm.bas.wrappers.observation import components
 
 
-def create_env():
+def create_env(
+        num_sections=8,
+        distance_reward_transform=lambda d: -d,
+        collision_termination=False,
+        collision_reward=0,
+):
+    world_size = np.array([200, 200])
+
     blueprint = Blueprint(
-        world_size=np.array([200, 200]),
+        world_size=world_size,
     )
     agent = Agent(
         radius=1,
@@ -28,7 +35,7 @@ def create_env():
             obstacle_margin=3,
         ),
         InstantSpawner(),
-        reset_between_episodes=False,
+        reset_between_episodes=True,
     )
     env = BASEnv(blueprint, agent, swarm)
 
@@ -40,23 +47,20 @@ def create_env():
         position=target,
         target_radius=3,
         target_reward=3,
-        distance_reward_transform=lambda d: -d,
+        distance_reward_transform=distance_reward_transform,
     )
     env = wrappers.BoidCollisionWrapper(
         env,
-        collision_termination=False,
-        collision_reward=0,
-        add_reward=True,
+        collision_termination=collision_termination,
+        collision_reward=collision_reward,
     )
 
     env = wrappers.ObservationContainerWrapper(
         env,
         [
-            components.SectionDistanceObservationComponent(8, 20),
-            components.SectionVelocityDistanceObservationComponent(
-                8, 20, relative_to_agent=False
-            ),
-            components.TargetDirectionDistanceObservationComponent(target, 200, 0.1),
+            components.SectionDistanceObservationComponent(num_sections, 20),
+            components.SectionVelocityDistanceObservationComponent(num_sections, 20),
+            components.TargetDirectionDistanceObservationComponent(target, world_size[0]),
             components.AgentVelocityObservationComponent(),
         ],
     )
@@ -65,7 +69,7 @@ def create_env():
 
     env = wrappers.FlattenObservationWrapper(env)
 
-    env = wrappers.DesiredVelocityActionWrapper(env)
+    env = wrappers.AngularAndVelocityActionWrapper(env)
 
     env = wrappers.TrajectoryWrapper(env)
 
