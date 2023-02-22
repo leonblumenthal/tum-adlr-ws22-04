@@ -20,7 +20,7 @@ def create_env(
     alignment_range=20,
     steering_weights=(4.0, 2.0, 1.0, 0.0),
     world_size=np.array([200, 200]),
-    trajectory=True,
+    trajectories=True,
 ):
     blueprint = Blueprint(
         world_size=world_size,
@@ -81,7 +81,7 @@ def create_env(
 
     env = wrappers.AngularAndVelocityActionWrapper(env)
 
-    if trajectory:
+    if trajectories:
         env = wrappers.TrajectoryWrapper(env)
 
     return env

@@ -11,7 +11,7 @@ def create_env(
     distance_reward_transform=lambda d: -d,
     collision_termination=False,
     collision_reward=0,
-    trajectory=True,
+    trajectories=True,
 ):
     world_size = np.array([200, 200])
 
@@ -74,7 +74,7 @@ def create_env(
 
     env = wrappers.AngularAndVelocityActionWrapper(env)
 
-    if trajectory:
+    if trajectories:
         env = wrappers.TrajectoryWrapper(env)
 
     return env
