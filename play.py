@@ -7,9 +7,9 @@ from pathlib import Path
 import gymnasium as gym
 from gymnasium.utils.play import play
 
-from swarm.bas import wrappers
-from swarm.bas.render.utils import inject_render_wrapper
-from swarm.bas.wrappers import utils
+from bas import wrappers
+from bas.render.utils import inject_render_wrapper
+from bas.wrappers import utils
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

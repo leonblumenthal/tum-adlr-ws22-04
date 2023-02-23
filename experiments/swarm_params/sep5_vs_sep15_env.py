@@ -1,9 +1,9 @@
 import gymnasium as gym
 import numpy as np
 
-from swarm.bas import Agent, BASEnv, Blueprint, Swarm, wrappers
-from swarm.bas.swarm import InstantSpawner, SwarmConfig
-from swarm.bas.wrappers.observation import components
+from bas import Agent, BASEnv, Blueprint, Swarm, wrappers
+from bas.swarm import InstantSpawner, SwarmConfig
+from bas.wrappers.observation import components
 
 # Environment that provides an example scenario in which the difference in strategy becomes visible for an agent trained in a swarm with less (separation range 5) vs. more (separation range 15) separation. The two agents perform differently in this same scenario.
 def create_env(

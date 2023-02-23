@@ -5,13 +5,13 @@ import gymnasium as gym
 import numpy as np
 import pygame
 
-from swarm.bas.render.constants import Colors
-from swarm.bas.render.renderers.bas import BASEnvRenderer
-from swarm.bas.render.renderers.misc import AgentTrajectoryRenderer
-from swarm.bas.render.renderers.observation import \
+from bas.render.constants import Colors
+from bas.render.renderers.bas import BASEnvRenderer
+from bas.render.renderers.misc import AgentTrajectoryRenderer
+from bas.render.renderers.observation import \
     ObservationContainerWrapperRenderer
-from swarm.bas.render.renderers.renderer import Renderer
-from swarm.bas.render.renderers.reward import (
+from bas.render.renderers.renderer import Renderer
+from bas.render.renderers.reward import (
     NumNeighborsRewardWrapperRenderer, TargetRewardWrapperRenderer)
 
 

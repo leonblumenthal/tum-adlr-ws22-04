@@ -10,7 +10,7 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
-from swarm.training.callbacks import (
+from training.callbacks import (
     DrawTrajectoriesCallback,
     SuccessRateCallback,
     VideoRecorderCallback,

@@ -15,9 +15,9 @@ sys.modules["gym"] = gym
 import numpy as np
 from stable_baselines3 import PPO
 
-from swarm.bas import wrappers
-from swarm.bas.render.utils import inject_render_wrapper
-from swarm.bas.wrappers import utils
+from bas import wrappers
+from bas.render.utils import inject_render_wrapper
+from bas.wrappers import utils
 from utils import parse_model_env_window_scale
 
 

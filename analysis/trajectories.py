@@ -8,7 +8,7 @@ from tqdm import tqdm
 sys.modules["gym"] = gymnasium
 from stable_baselines3 import PPO
 
-from swarm.bas import BASEnv
+from bas import BASEnv
 
 
 def _get_trajectories(env: BASEnv, model: PPO, num_steps: int) -> list[np.ndarray]:

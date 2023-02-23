@@ -6,7 +6,7 @@ sys.path.append(".")
 from pathlib import Path
 
 from experiments.swarm_params.env import create_env
-from swarm.training.training import train
+from training.training import train
 
 curriculum = [
     (

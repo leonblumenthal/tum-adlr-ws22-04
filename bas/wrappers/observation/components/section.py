@@ -3,8 +3,8 @@ from typing import Generator
 import gymnasium as gym
 import numpy as np
 
-from swarm.bas import BASEnv
-from swarm.bas.wrappers.observation.components.component import (
+from bas import BASEnv
+from bas.wrappers.observation.components.component import (
     ObservationComponent,
     SharedComputer,
 )

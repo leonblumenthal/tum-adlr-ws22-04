@@ -1,8 +1,8 @@
 import pygame
 
-from swarm.bas import Agent, BASEnv, Swarm
-from swarm.bas.render.constants import Colors
-from swarm.bas.render.renderers.renderer import Renderer
+from bas import Agent, BASEnv, Swarm
+from bas.render.constants import Colors
+from bas.render.renderers.renderer import Renderer
 
 
 class BASEnvRenderer(Renderer):

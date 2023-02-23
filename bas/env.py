@@ -3,9 +3,9 @@ from typing import Any
 import gymnasium as gym
 import numpy as np
 
-from swarm.bas.agent import Agent
-from swarm.bas.blueprint import Blueprint
-from swarm.bas.swarm import Swarm
+from bas.agent import Agent
+from bas.blueprint import Blueprint
+from bas.swarm import Swarm
 
 
 class BASEnv(gym.Env):

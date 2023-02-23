@@ -1,7 +1,7 @@
 import numpy as np
 
-from swarm.bas.swarm.config import SwarmConfig
-from swarm.bas.swarm.spawner import Spawner
+from bas.swarm.config import SwarmConfig
+from bas.swarm.spawner import Spawner
 
 
 def normalize(vectors: np.ndarray, eps: float = 1e-6) -> np.ndarray:

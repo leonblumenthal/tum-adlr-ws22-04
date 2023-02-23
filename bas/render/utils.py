@@ -1,7 +1,7 @@
 import gymnasium as gym
 
-from swarm.bas.render.wrapper import RenderWrapper
-from swarm.bas.wrappers import FlattenObservationWrapper
+from bas.render.wrapper import RenderWrapper
+from bas.wrappers import FlattenObservationWrapper
 
 
 def inject_render_wrapper(env: gym.Wrapper, **render_wrapper_kwargs) -> gym.Wrapper:

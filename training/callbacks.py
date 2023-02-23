@@ -1,9 +1,9 @@
 import sys
 
 import gymnasium as gym
-from swarm.bas.wrappers import TrajectoryWrapper
+from bas.wrappers import TrajectoryWrapper
 
-from swarm.bas.wrappers.utils import has_wrapper
+from bas.wrappers.utils import has_wrapper
 
 sys.modules["gym"] = gym
 
@@ -17,10 +17,10 @@ from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.logger import Image
 from stable_baselines3.common.utils import safe_mean
 
-from swarm.analysis.reward import create_reward_heatmap
-from swarm.analysis.trajectories import draw_trajectories
-from swarm.bas import BASEnv
-from swarm.bas.render.utils import inject_render_wrapper
+from analysis.reward import create_reward_heatmap
+from analysis.trajectories import draw_trajectories
+from bas import BASEnv
+from bas.render.utils import inject_render_wrapper
 
 
 class DrawTrajectoriesCallback(BaseCallback):

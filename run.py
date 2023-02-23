@@ -5,7 +5,7 @@ import gymnasium as gym
 sys.modules["gym"] = gym
 from stable_baselines3 import PPO
 
-from swarm.bas.render.utils import inject_render_wrapper
+from bas.render.utils import inject_render_wrapper
 from utils import parse_model_env_window_scale
 
 

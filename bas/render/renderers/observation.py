@@ -2,10 +2,10 @@ import gymnasium as gym
 import numpy as np
 import pygame
 
-from swarm.bas import wrappers
-from swarm.bas.render.constants import Colors
-from swarm.bas.render.renderers.renderer import Renderer
-from swarm.bas.wrappers.observation import components
+from bas import wrappers
+from bas.render.constants import Colors
+from bas.render.renderers.renderer import Renderer
+from bas.wrappers.observation import components
 
 
 class ObservationContainerWrapperRenderer(Renderer):

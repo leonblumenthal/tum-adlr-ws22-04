@@ -1,8 +1,8 @@
 import gymnasium as gym
 import numpy as np
 
-from swarm.bas.wrappers.observation.components.component import ObservationComponent
-from swarm.bas.wrappers.observation.shared_computer import SharedComputer
+from bas.wrappers.observation.components.component import ObservationComponent
+from bas.wrappers.observation.shared_computer import SharedComputer
 
 
 class ObservationContainerWrapper(gym.ObservationWrapper):

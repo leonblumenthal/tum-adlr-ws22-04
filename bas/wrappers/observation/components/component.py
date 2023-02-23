@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod, abstractproperty
 import gymnasium as gym
 import numpy as np
 
-from swarm.bas.wrappers.observation.shared_computer import SharedComputer
+from bas.wrappers.observation.shared_computer import SharedComputer
 
 
 class ObservationComponent(ABC):

@@ -8,8 +8,8 @@ from matplotlib.figure import Figure
 sys.modules["gym"] = gymnasium
 from stable_baselines3 import PPO
 
-from swarm.analysis import utils
-from swarm.bas import BASEnv
+from analysis import utils
+from bas import BASEnv
 
 
 def _get_observations(

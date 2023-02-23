@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from swarm.bas.swarm.config import SwarmConfig
+from bas.swarm.config import SwarmConfig
 
 
 class Spawner(ABC):

@@ -1,7 +1,7 @@
 import numpy as np
 
-from swarm.analysis import utils
-from swarm.bas import BASEnv
+from analysis import utils
+from bas import BASEnv
 
 
 def _get_rewards(

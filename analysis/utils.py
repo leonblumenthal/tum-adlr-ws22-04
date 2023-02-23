@@ -1,6 +1,6 @@
 import numpy as np
 
-from swarm.bas import BASEnv
+from bas import BASEnv
 
 
 def generate_grid_positions(env: BASEnv, num_width: int, num_height: int) -> np.ndarray:
