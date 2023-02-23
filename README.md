@@ -81,7 +81,7 @@ python record.py path/to/model.zip experiments/example/env.py create_env "()" vi
 
 
 ## How it's build
-Next to the scripts for running trained models, the repository is split into
+Next to the scripts for running trained models, the repository consists of the following
 
 - `analysis`: Contains helper functions for creating policy, reward, or trajectory plots.
 - `bas`: BAS for **B**lueprint, **A**gent, **S**warm contains the entire swarm implementation as well as building blocks for creating environments including the blueprint, agent, and various wrappers. See bas [README](./bas/README.md) for more details.
