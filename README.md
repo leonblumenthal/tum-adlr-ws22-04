@@ -19,7 +19,7 @@ Install dependencies:
 git clone git@github.com:leonblumenthal/tum-adlr-ws22-04.git
 cd tum-adlr-ws22-04
 
-# [OPTIONAL] create a virtual environment using conda or pyenv
+# [OPTIONAL] create a virtual environment using conda or pyenv with Python 3.10 or greater
 
 # install requirements
 pip install -r requirements.txt
