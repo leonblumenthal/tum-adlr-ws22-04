@@ -7,7 +7,6 @@
 <a href="https://stable-baselines3.readthedocs.io/en/master/#"><img alt="StableBaselines3" src="https://img.shields.io/badge/StableBaselines3-b0b3e6"></a>
 </div>
 
-## Description
 This is the code to implement dynamic swarm-based environments and enable robot motion planning using deep reinforcement learning in various such scenarios.
 
 Authors: Jakob Taube (concept, programming), Leon Blumenthal (concept, programming), Lennart Röstel (supervision)
