@@ -17,79 +17,73 @@ Install dependencies:
 ```yaml
 # clone project
 git clone git@github.com:leonblumenthal/tum-adlr-ws22-04.git
-cd tum-adlr-ws22-04.git
+cd tum-adlr-ws22-04
 
-# [OPTIONAL] create virtual environment using conda or pyenv
+# [OPTIONAL] create a virtual environment using conda or pyenv
 
 # install requirements
 pip install -r requirements.txt
 ```
 
+## How to train
+
+Define an environment function and a training curriculum. An example can be found under [experiments/example/](./experiments/example/). For a more detailed description of how to set up your own environments, see the experiments [README](./experiments/README.md). Once you are ready to train a model, simply start the training by calling the training script:
+
+```yaml
+# e.g.
+python experiments/example/experiment1/train.py
+
+```
+
+For training in the cloud, we recommend using [tmux](https://github.com/tmux/tmux/wiki). Furthermore, when working with gcloud you can view TensorBoard logs and training videos locally by enabling port forwarding. For instance, if you want to forward the default port of TensorBoard and the default port of our [video server](#video-server) you can achieve this by appending "`-- -L 6006:localhost:6006 -L 8008:localhost:8008`" to the gcloud compute ssh command.
+
 ## How to run
 
-Select an image dataset (mnist, cifar) and model type (memae or ae)
+There are two main entry points: `play.py` and `run.py`. Use `play.py` to simply observe the defined environment/swarm behavior. This does not require any trained model. You can move around using `W, A, S, D` on your keyboard.
+On the other hand, use `run.py` to load a pre-trained model and observe its behavior in the defined environment. Movement is done automatically by the model.
+
+The calling of these scripts is intended to enable the loading of predefined environments which were created during the experiments. In addition, their arguments are intended to be readily adjustable for various scenarios. In order to run the example environment with trajectories turned off, you would for example execute:
+
 ```yaml
-# default
-python main.py model=memae datamodule=mnist
+
+# play around
+python play.py experiments/example/env.py create_env "(trajectories=False)"
+
+# run trained model
+python run.py path/to/model.zip experiments/example/env.py create_env "(trajectories=False)"
 ```
 
-Or select a time series dataset (ecg5000, ucranomaly, yahooa1, yahooa2)
+For more details, check out the help of the `play.py`, i.e. `python play.py -h`, or the `run.py` respectively.
+
+## Additional Tools
+
+### Video Server
+We provide a video server in order to remotely access training videos. To start it, simply run
+
 ```yaml
-# e.g.
-python main.py model=ae datamodule=yahooa2 datamodule.id=3
+python video_server.py
 ```
-Note that ucranomaly and yahoo are archives of multiple anomaly datasets. Therefore, a concrete dataset has to be chosen via the `datamodule.id`. To learn more about training configuration see [Configure Training](#configure-training).
 
-### Pretrain a model via MAML
+### Drag Tool
+We provide a drag tool found in the `drag.py` which allows analyzing the agent's behavior using a trained model. You can move around every object with `left mouse button` and change its velocity with `right mouse button` which allows you to interactively create any scenario you want.
 
-Define a meta data set in the configuration files (e.g. "example1.yaml") and train a specific model (currently only for ae-rolling-window or memae-rolling-window on time series data)
 ```yaml
-# e.g.
-python maml.py model=memae-rolling-window datamodule/meta_set=example1
-
+#e.g.
+python drag.py path/to/model.zip experiments/example/env.py create_env "()"
 ```
-For a better understanding of how to setup your MAML see [Configure MAML Pretraining](#configure-maml-pretraining).
 
-## How to configure
+### Video Recording
+In case you want to record videos of the execution of a model, use the `record.py`. For details, look at the help `python record.py -h`.
+```yaml
+#e.g.
+python record.py path/to/model.zip experiments/example/env.py create_env "()" videos/example.mp4 1
+```
 
-### Configure Training
-For a more specific setup the model training is highly configurable via the hydra configuration files. They can be found in the `configs` folder. These configuration files define different parameters that can be overwritten or extended via the configuration files or via the command line directly at any time. Hydra then builds a dictionary-like config starting in the `config.yaml` as root and expanding it with subconfigurations as specified.
-The folder structure mirrors this dictionary:
-- `configs`:
-    - `datamodule`:
-        - ... : specifies which data to train on and provides a default configuration of what parameters to use for the lightning datamodule
-        - `eval_metric`:
-            - ... : evaluation metrics for the performance of a model
-    - `datamodule_model`:
-        - ... : extends the model config by datamodule specific parameters
-        - `model_config`:
-            - `ae-rolling-window.yaml`: several time series datamodules share common model parameters which are defined here
-    - `hydra`:
-        - `default.yaml`: defines the hydra run directory
-    - `model`:
-        - ... : specifies the model (ae or memae)
-    - `trainer`: 
-        - `default.yaml`: parameters for the lightning trainer
-    - `config.yaml`: main entry point of configs
-
-Checkout the configuration files to see all parameters in detail.
-
-### Configure MAML Pretraining
-Configurations for MAML pretraining can be found in `maml_configs`. The folder structure is very similar to the `configs` but does not include `datamodule_model` since it is trained on multiple datasets instead of one. Consequently, the model architecture cannot be inferred by the datamodule but must be explicitly defined in `model`. Similarly, the used datasets must be explicitly provided. This can be achieved by providing python classes with their arguments for instantiation in a configuration file under `datamodule/meta_set`.
 
 ## How it's build
-The main entry point is the `run.py`. It loads the specified model and passes it to a training function which is defined in `setup_and_train.py`. The latter combines all components of this project to setup a model and datamodule, execute the training loop, and save the corresponding logs. The different components of this project are split into separate folders. Overview of the folder structure:
+Next to the scripts for running trained models, the repository is split into
 
-- `analysis`: contains scripts and notebooks to analyse certain configurations and visualize results
-- `configs`: hydra configurations for training (see [How to configure](#how-to-configure))
-- `configs_maml`: hydra configurations for pretraining with MAML
-- `data`: contains raw datasets
-- `datamodules`: pytorch lightning datamodules for given datasets to automate data loading
-- `logs`: logger outputs of runs and model checkpoints if applicable
-- `model_transformers`: model transformers (mainly used for memory transformations on memae)
-- `models`: model architectures (ae and memae)
-- `modules`: memory module for memae
-- `systems`: pytorch lightning modules to automate train and test loop
-
-The entry point for pretraining with MAML is the `maml.py`. It executes the MAML training on the given model but can also automatically create a non-MAML twin of the model. That means it trains a second model of the exact same architecture as the first and on the exact same samples but in a regular/non-MAML fashion.
-<br>
+- `analysis`: Contains helper functions for creating policy, reward, or trajectory plots.
+- `bas`: BAS for **B**lueprint, **A**gent, **S**warm contains the entire swarm implementation as well as building blocks for creating environments including the blueprint, agent, and various wrappers. See bas [README](./bas/README.md) for more details.
+- `experiments`: Contains the scripts for the concrete environments and trainings used for the experiment conduction as well as scripts and notebooks for analyzing certain configurations and visualizing results. See experiments [README](./experiments/README.md) for more details.
+- `training`: Contains helper functions for training and logging.
