@@ -6,7 +6,7 @@ For defining environments, you should use environment functions. This allows for
 
 Note that the neural network used for the agent policy has to receive a 1D array as input. Usually, this input is given by all observations. Since different observations have a different intuitive representation in terms of dimensions, use the `FlattenObservationWrapper` at the end of your environment to ensure that all observations are flattened to a 1D array.
 
-Furthermore, make sure that the model can correlate observations with received reward, i.e. the exact same observation leading to the exact same action performed should not result in different rewards. Otherwise, PPO does not train properly and the result will be bananas 🍌.
+Furthermore, make sure that the model can correlate observations with received reward, i.e. the exact same observation leading to the exact same action performed (apart from exploration) should not result in different rewards. Otherwise, PPO does not train properly and the result will be bananas 🍌.
 
 ## Training Curriculum
 Sometimes throwing your agent in at the deep end does not yield good results. It makes sense to acquaint it with the task step by step, especially if the task is quite complex. In order to not manually have to reload your model and continue training it in more and more complex environments, you should make use of a training curriculum. A training curriculum consists of a list of chapters where each chapter is a tuple that defines a number of steps to train for and an environment function to use for training. Model weights are saved after each chapter. The `example/eperiment_1/train.py` defines a curriculum using only a single chapter. Check out other experiments to see more complex curricula.   
