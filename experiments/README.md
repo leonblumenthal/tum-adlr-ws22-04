@@ -1,0 +1,10 @@
+# Experiments
+Experiments are sorted into folders. Sometimes experiments are grouped together and divided into subfolders. Theoretically, you can subdivide experiments even further. All that matters is that you define an [environment](#environment-function) and a [training curriculum](#training-curriculum) for each experiment. You can find an example under `example/`.
+
+## Environment Function
+For defining environments, you should use environment functions. This allows for using the built-in `SubprocVecEnv` for parallelization of the training. Furthermore, it facilitates the reuse of an environment at various parts of the pipeline or even across different experiments. Within the environment function you can parameterize and build the environment however you want. However, in almost all cases you will create the environment by stacking appropriate wrappers on top of the `BASEnv`.
+
+Note that the neural network used for the agent policy has to receive a 1D array as input. Usually, this input is given by all observations. Since different observations have a different intuitive representation in terms of dimensions, use the `FlattenObservationWrapper` at the end of your environment to ensure that all observations are flattened to a 1D array.
+
+## Training Curriculum
+Sometimes throwing your agent in at the deep end does not yield good results. It makes sense to acquaint it with the task step by step, especially if the task is quite complex. In order to not manually have to reload your model and continue training it in more and more complex environments, you should make use of a training curriculum. A training curriculum consists of a list of chapters where each chapter is a tuple that defines a number of steps to train for and an environment function to use for training. Model weights are saved after each chapter. The `example/eperiment_1/train.py` defines a curriculum using only a single chapter. Check out other experiments to see more complex curricula.   
