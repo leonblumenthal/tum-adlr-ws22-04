@@ -20,4 +20,4 @@ The wrappers mostly constitute the key characteristics of the agent and the task
 ## Rendering
 Rendering follows the environment architecture one to one. There is a renderer for the BAS environment and every wrapper. That way you can build arbitrary environments with the given building blocks and rendering will match automatically. To enable your renderers just add them to the `enabled_renderers` list of the [RenderWrapper](./render/wrapper.py)
 
- When creating environments, we recommend defining your environments without rendering as used during training and injecting a `RenderWrapper` afterward for visualization using the [inject_render_wrapper](./render/utils.py).
+ When creating environments, we recommend defining your environments without rendering as used during training and injecting a `RenderWrapper` afterward for visualization using the [`inject_render_wrapper`](./render/utils.py).
