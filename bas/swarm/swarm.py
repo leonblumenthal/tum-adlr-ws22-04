@@ -48,6 +48,7 @@ class Swarm:
         Args:
             config: Configuration of swarm parameters
             spawner: Spawner of boids following a spawning policy.
+            reset_between_episodes: Whether to reset the swarm between episodes.
         """
         self.config = config
         self.spawner = spawner

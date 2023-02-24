@@ -5,7 +5,7 @@ from bas.wrappers import FlattenObservationWrapper
 
 
 def inject_render_wrapper(env: gym.Wrapper, **render_wrapper_kwargs) -> gym.Wrapper:
-    """Moves the `FlattenObservationWrapper` to the outermost wrapper if present and injects `RenderWrapper` inside the `FlattenObservationWrapper` to ensure correct rendering."""
+    """Moves the `FlattenObservationWrapper` to the outermost position of all wrappers if it is present and wraps the `RenderWrapper` around the env but inside the `FlattenObservationWrapper` to ensure correct rendering."""
     current_env = env
     last_seen = None
     first_env = env

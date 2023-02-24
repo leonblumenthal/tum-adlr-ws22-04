@@ -32,7 +32,7 @@ class RenderWrapper(gym.Wrapper):
 
     For all nested envs/wrappers execute all applicable renderers in `enabled_renderers`.
 
-    This wrapper should be above other custom BAS-related wrappers.
+    This wrapper should be wrapped around other custom BAS-related wrappers so that they are visible to the RenderWrapper.
     """
 
     def __init__(
