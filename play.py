@@ -42,4 +42,5 @@ if __name__ == "__main__":
             a=3,  # left
             s=4,  # down
         ),
+        callback=print
     )

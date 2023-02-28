@@ -53,7 +53,7 @@ class Dragger:
 
         self.env.agent.step = _cache_action
         self.env.swarm.step = lambda *_: None
-        self.env = inject_render_wrapper(env, window_scale=window_scale, return_numpy=False)
+        inject_render_wrapper(self.env, window_scale=window_scale, return_numpy=False)
         self.env.reset()
 
     def _init_dragables(self):
@@ -84,14 +84,37 @@ class Dragger:
 
         env_action = None
 
+        angle = 0
+        wild = False
+        edge = []
+
         is_running = True
         while is_running:
+            if wild:
+                angle += np.pi / 200
+
+                self.selected.position[:] = (
+                    np.array([100, 100]) + np.array([np.cos(angle), np.sin(angle)]) * 50
+                )
+
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN and event.key in (
                     pygame.K_q,
                     pygame.K_ESCAPE,
                 ):
                     is_running = False
+
+                if wild or (
+                    event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE
+                ):
+                    wild = True
+                    self.selected = self.dragables[-2]
+                    self.selection_mode = self.POSITION_SELECTION
+                    self.dragables[-1].position[:] = np.array([100, 100])
+                    self.dragables[-1].velocity[:] = np.array([1, 0])
+                    self.env.agent.angle = 0
+
+                    break
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     for dragable in self.dragables:
@@ -160,6 +183,22 @@ class Dragger:
                     (self.env.agent.position + env_action * 20) * self.env.window_scale,
                     3,
                 )
+
+                if wild:
+                    edge.append(
+                        (self.env.agent.position + env_action * 20)
+                        * self.env.window_scale
+                    )
+                    if len(edge) > 400:
+                        for a, b in zip(edge[400:], edge[401:]):
+                            pygame.draw.line(
+                                canvas,
+                                (0, 150, 0),
+                                a,
+                                b,
+                                3,
+                            )
+
                 canvas = pygame.transform.flip(canvas, flip_x=False, flip_y=True)
 
             screen.blit(canvas, (0, 0))
