@@ -2,9 +2,9 @@ from typing import Callable, Type
 import gymnasium as gym
 import numpy as np
 
-from swarm.bas import Agent, BASEnv, Blueprint, Swarm, wrappers
-from swarm.bas.swarm import InstantSpawner, SwarmConfig
-from swarm.bas.wrappers.observation import components
+from bas import Agent, BASEnv, Blueprint, Swarm, wrappers
+from bas.swarm import InstantSpawner, SwarmConfig
+from bas.wrappers.observation import components
 
 
 def create_env(

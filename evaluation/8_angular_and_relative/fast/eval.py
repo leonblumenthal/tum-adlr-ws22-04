@@ -6,8 +6,8 @@ from pathlib import Path
 
 from evaluation.evaluate import evaluate
 from experiments.random_to_target.env import create_env as create_training_env
-from swarm.bas.wrappers.observation import components
-from swarm.bas import wrappers
+from bas.wrappers.observation import components
+from bas import wrappers
 
 
 def create_env(observation_components, action_wrapper_class):

@@ -6,9 +6,9 @@ sys.path.append(".")
 from pathlib import Path
 
 from experiments.random_to_target.env import create_curriculum
-from swarm.bas import wrappers
-from swarm.bas.wrappers.observation import components
-from swarm.training.training import train
+from bas import wrappers
+from bas.wrappers.observation import components
+from training.training import train
 
 
 section_angular_curriculum = create_curriculum(

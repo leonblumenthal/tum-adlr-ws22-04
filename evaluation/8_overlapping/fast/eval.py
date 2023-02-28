@@ -8,8 +8,8 @@ import numpy as np
 
 from evaluation.evaluate import evaluate
 from experiments.random_to_target.env import create_env as create_training_env
-from swarm.bas import wrappers
-from swarm.bas.wrappers.observation import components
+from bas import wrappers
+from bas.wrappers.observation import components
 
 
 def create_env():
