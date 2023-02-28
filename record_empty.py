@@ -11,7 +11,7 @@ import cv2
 from stable_baselines3 import PPO
 from tqdm import tqdm
 
-from swarm.bas.render.utils import inject_render_wrapper
+from bas.render.utils import inject_render_wrapper
 
 
 def record(env: gym.Env, window_scale: float, video_path: Path, num_episodes: int):
