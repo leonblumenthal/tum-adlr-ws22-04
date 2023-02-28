@@ -84,5 +84,6 @@ Next to the scripts for running trained models, the repository consists of the f
 
 - `analysis`: Contains helper functions for creating policy, reward, or trajectory plots.
 - `bas`: BAS for **B**lueprint, **A**gent, **S**warm contains the entire swarm implementation as well as building blocks for creating environments including the blueprint, agent, and various wrappers. See bas [README](./bas/README.md) for more details.
-- `experiments`: Contains the scripts for the concrete environments and trainings used for the experiment conduction as well as scripts and notebooks for analyzing certain configurations and visualizing results. See experiments [README](./experiments/README.md) for more details.
+- `evaluation`: Contains scripts, notebooks, and csv files for the evaluation and visualization of the conducted experiments.
+- `experiments`: Contains the scripts for the concrete environments and trainings used for the experiment conduction. See experiments [README](./experiments/README.md) for more details.
 - `training`: Contains helper functions for training and logging.
